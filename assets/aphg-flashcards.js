@@ -18,7 +18,7 @@
   function dedupe(terms) {
     const seen = new Set();
     return terms.filter(term => {
-      const key = term.term.trim().toLowerCase();
+      const key = term.id;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -51,7 +51,7 @@
 
   function renderEmpty() {
     card.hidden = true;
-    document.querySelector("#cardShell").insertAdjacentHTML("beforeend", `<div class="empty-state panel flash-empty"><h2>No cards match this view yet</h2><p class="muted">${studyMode.value === "learning" ? "Mark a card Still Learning to add it here." : studyMode.value === "missed" ? "Complete a quiz and miss a related assigned concept to build this deck." : topicFilter.value === "1.6" ? "The available 1–17 assignment has no numbered Topic 1.6 term. Use the teacher notes and Topic Quiz instead." : "Try Study All or another topic."}</p></div>`);
+    document.querySelector("#cardShell").insertAdjacentHTML("beforeend", `<div class="empty-state panel flash-empty"><h2>No cards match this view yet</h2><p class="muted">${studyMode.value === "learning" ? "Mark a card Still Learning to add it here." : studyMode.value === "missed" ? "Complete a quiz and miss a related assigned concept to build this deck." : "Try Study All or another topic."}</p></div>`);
   }
 
   function render() {

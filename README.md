@@ -11,6 +11,10 @@ StudySpace is a responsive, installable study workspace built with plain HTML, C
 - `aphg-flashcards.html` — topic filters, adaptive modes, persistent Know It/Still Learning state, swipe, and keyboard controls
 - `aphg-quiz.html` — 10/20/30-question, topic, weak-topic, and mistake-focused practice with full answer review
 - `aphg-review.html` — searchable review of the verified numbered vocabulary entries
+- `biology.html` — Biology 1 Honors course hub with Unit 1 mastery, source slots, and honest later-unit placeholders
+- `biology-topic.html?s=1.1` — reusable 5E sequence page for Biology Unit 1 Sequences 1.1–1.5
+- `biology-flashcards.html`, `biology-quiz.html`, and `biology-mistakes.html` — persistent adaptive practice and mistake review
+- `biology-session.html` — a guided session that starts with the weakest measured Biology sequence
 - `planner.html` — assessments, countdowns, editable plans, task completion, and focus-session handoff
 - `study.html` — pasted-text/TXT/image import, source-preserving saved sets, scan handoff, and notebook actions
 - `csit-essentials.html` and `csit-module1.html` — existing CSIT course content, now connected to Study This and contextual tutor actions
@@ -24,15 +28,23 @@ The Unit 1 source manifest is `assets/data/aphg-unit1.js`. Every material has a 
 3. Existing StudySpace notes
 4. Clearly labeled StudySpace/AI explanation
 
-The supplied brief contained verified teacher concepts for Topics 1.1 and 1.6, so those are marked as teacher material. No original PowerPoint, PDF, AMSCO file, or vocabulary document was present in the repository or attachments. The earlier supplied vocabulary brief contained authoritative numbered entries 1–17; those are preserved exactly as the available assignment. StudySpace does not invent entries 18–46 or claim that missing files were processed.
+The supplied brief contained verified teacher concepts for Topics 1.1 and 1.6, so those are marked as teacher material. No original PowerPoint, PDF, AMSCO file, or vocabulary document was present in the repository or attachments. The supplied vocabulary assignment contains all 46 numbered entries. Their original numbering is preserved, including the intentional repeated `Shape distortion` entry at number 41, while the stable IDs for entries 1–17 remain unchanged so prior progress survives.
 
 Place future authorized originals under `assets/materials/aphg/unit1/` with clear filenames, then update the matching material record's `repositoryPath`, `status`, and `originalAvailable` fields. Reserved teacher slots already exist for Topics 1.2, 1.3, 1.4, 1.5, and 1.7, so those sources can take priority without rebuilding Unit 1.
 
 The practice bank in `assets/data/question-bank.js` contains 46 structured StudySpace practice questions. Each has an ID, topic, type, difficulty, four choices, correct answer, explanation, related terms, and source label. They are practice questions, not claimed teacher test questions.
 
+## Biology architecture and sources
+
+`assets/data/biology-course.js` is the centralized Biology course model. Unit 1 contains five complete learning sequences: Properties of Water; Macromolecules & Enzymes; Cell Theory & Origin of Life; Cell Types, Organelles, & Membrane Transport; and Photosynthesis, Cellular Respiration, & Cell Energetics. Each follows a Pre-Class → Engage → Explore → Explain → Elaborate → Evaluate → Mastery flow and supplies structured targets, visuals, vocabulary, practice, CER work, and AI context.
+
+Units 2–4 and the semester review are course-map placeholders only; StudySpace does not claim that their source content has been imported. The supplied Biology material was a course outline rather than original teacher files, so the per-sequence source records remain `file-needed` and all source-dependent actions are disabled. Future authorized originals belong under `assets/materials/biology/unit1/<sequence>/`, after which the matching material record can be activated without rebuilding the course pages.
+
+`assets/data/biology-questions.js` contains 36 original StudySpace questions across Sequences 1.1–1.5. They are labeled as outline-based StudySpace practice, not teacher questions.
+
 ## Progress and local data
 
-`assets/studyspace-core.js` owns versioned local state in `studyspace-app-v1`. It migrates prior APHG flashcard and quiz history without clearing existing chatbot histories.
+`assets/studyspace-core.js` owns versioned local state in `studyspace-app-v1`. Schema version 2 adds subject-safe Biology evidence and structured mistake records while migrating prior APHG flashcard and quiz history without clearing existing chatbot histories.
 
 Topic mastery needs at least three pieces of evidence. When enough exists, quiz performance contributes 70% and flashcard mastery contributes 30%; available components are normalized when only one evidence type exists. Scores are labeled Strong at 80%+, Developing at 60–79%, and Weak below 60%. Until then, the interface says `Not enough data yet`.
 
@@ -56,4 +68,4 @@ Serve the repository over HTTP rather than opening HTML files directly so the se
 npm test
 ```
 
-The test validates the seven-topic model, the 17 verified sequential vocabulary entries, the 46-question bank, source availability rules, required pages, and local HTML asset links.
+The test validates all 46 sequential APHG assignment entries, stable legacy IDs and the intentional duplicate, the original 46-question APHG bank, all five Biology sequences, 36 Biology questions, source availability rules, migration hooks, required pages, and local HTML asset links.

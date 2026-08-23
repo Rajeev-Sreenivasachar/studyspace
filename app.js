@@ -74,7 +74,7 @@ function loadScript(src, done = () => {}) {
 }
 
 function loadPlatform(done = () => {}) {
-  loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/studyspace-core.js", done));
+  loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/studyspace-core.js", done)));
 }
 
 function renderSmartDashboard() {
@@ -84,6 +84,15 @@ function renderSmartDashboard() {
   const upcoming = data.assessments.filter(item => (StudySpace.daysUntil(item.date) ?? -1) >= 0).slice(0, 3);
   const recent = data.quizAttempts.slice(-3).reverse();
   const weak = StudySpace.weakTopics().slice(0, 3);
+  const biologyUnit = globalThis.BIOLOGY_COURSE?.unit1;
+  const biologyMastery = biologyUnit ? StudySpace.allMastery(biologyUnit) : [];
+  const biologyWeak = biologyUnit ? StudySpace.weakTopics(biologyUnit) : [];
+  const biologyStarted = biologyMastery.some(item => item.evidence > 0);
+  const biologyNext = biologyWeak[0]?.topic || biologyMastery.find(item => item.label !== "Mastered")?.topic || "1.1";
+  const featuredTitle = document.querySelector("#featured .study-set h3");
+  const featuredTermTag = document.querySelector("#featured .study-set .tag");
+  if (featuredTitle) featuredTitle.textContent = "Unit 1 Vocab — Terms 1–46";
+  if (featuredTermTag) featuredTermTag.textContent = "46 terms";
   const cards = Object.values(data.flashcardMastery);
   const mastered = cards.filter(item => item.status === "mastered").length;
   const nextAssessment = upcoming[0];
@@ -92,6 +101,7 @@ function renderSmartDashboard() {
     <div class="section-head"><div><div class="eyebrow">Your dashboard</div><h2 id="dashboardTitle">What needs attention now</h2></div><a class="btn small" href="planner.html">Open planner</a></div>
     <div class="dashboard-grid">
       <article class="dash-card dash-primary"><span class="dash-icon">▶</span><div class="eyebrow">Continue studying</div><h3>AP Human Geography Unit 1</h3><p>${weak.length ? `Start with Topic ${weak[0].topic}, currently your weakest measured topic.` : "Build your first mastery data with a quick quiz or flashcard round."}</p><a class="link" href="${weak.length ? `aphg-topic.html?t=${weak[0].topic}` : "aphg.html"}">Continue →</a></article>
+      <article class="dash-card"><span class="dash-icon">🧬</span><div class="eyebrow">Biology Unit 1</div><h3>${biologyStarted ? `Continue Sequence ${biologyNext}` : "Start with Properties of Water"}</h3><p>${biologyStarted ? `${biologyMastery.filter(item => item.evidence > 0).length} of 5 sequences have saved activity.` : "Follow the 5E path and build real concept mastery."}</p><a class="link" href="biology-topic.html?t=${biologyNext}">Study Biology →</a></article>
       <article class="dash-card"><div class="eyebrow">Upcoming</div>${upcoming.length ? upcoming.map(item => `<a class="dash-row" href="planner.html"><strong>${StudySpace.escapeHtml(item.name)}</strong><span>${StudySpace.countdown(item.date)}</span></a>`).join("") : `<p class="muted">No assessments yet.</p><a class="link" href="planner.html">Add one →</a>`}</article>
       <article class="dash-card"><div class="eyebrow">Today's plan</div>${plan.length ? plan.map(task => `<div class="dash-row"><strong>${StudySpace.escapeHtml(task.title)}</strong><span>${task.minutes} min</span></div>`).join("") : `<p class="muted">Add an assessment to generate a realistic plan.</p>`}</article>
       <article class="dash-card"><div class="eyebrow">Recent progress</div><div class="dash-metrics"><span><strong>${mastered}</strong> cards mastered</span><span><strong>${recent[0]?.percentage ?? "—"}${recent[0] ? "%" : ""}</strong> latest quiz</span></div>${weak.length ? `<p class="muted">Weak: ${weak.map(item => `Topic ${item.topic}`).join(", ")}</p>` : `<p class="muted">Mastery appears only after enough activity.</p>`}</article>
@@ -99,6 +109,12 @@ function renderSmartDashboard() {
     <div class="quick-actions" aria-label="Quick actions"><a href="study.html">Study This</a><a href="study.html#import">Scan / Import</a><a href="aphg-quiz.html">Practice Quiz</a><a href="aphg-flashcards.html">Flashcards</a><a href="#focus">Focus Timer</a><button type="button" data-dashboard-ai>Ask StudySpace AI</button></div>
   </section>`);
   document.querySelector("[data-dashboard-ai]")?.addEventListener("click", () => StudySpace.openAI("Help me choose what to study next based on the StudySpace page and my request." , false));
+  const biologyCard = [...document.querySelectorAll("#subjectCards a.card")].find(card => card.textContent.includes("Biology 1 Honors"));
+  if (biologyCard) {
+    biologyCard.href = "biology.html";
+    biologyCard.querySelector(".link").textContent = "Start studying →";
+    if (!biologyCard.querySelector(".subject-progress")) biologyCard.insertAdjacentHTML("beforeend", `<div class="subject-progress" aria-label="Biology Unit 1 progress">${biologyMastery.map(item => `<span><b>${item.topic}</b> ${StudySpace.escapeHtml(item.label)}</span>`).join("")}</div>`);
+  }
 }
 
 function upgradeHomeSearch() {
@@ -109,12 +125,16 @@ function upgradeHomeSearch() {
   const index = [
     ...unit.topics.map(topic => ({ title: `Topic ${topic.id}: ${topic.title}`, desc: topic.essentials.join(" "), href: `aphg-topic.html?t=${topic.id}`, kind: "APHG topic" })),
     ...unit.vocabulary.map(term => ({ title: term.term, desc: `${term.definition} ${term.example}`, href: `aphg-review.html?term=${term.id}`, kind: `Vocabulary · Topic ${term.topic}` })),
+    ...(globalThis.BIOLOGY_COURSE?.sequences || []).map(sequence => ({ title: `Biology ${sequence.id}: ${sequence.title}`, desc: `${sequence.summary} ${sequence.masteryTags.join(" ")}`, href: `biology-topic.html?t=${sequence.id}`, kind: "Biology sequence" })),
+    ...(globalThis.BIOLOGY_COURSE?.vocabulary || []).map(term => ({ title: term.term, desc: `${term.definition} ${term.example}`, href: `biology-flashcards.html?topic=${term.topic}`, kind: `Biology vocabulary · ${term.topic}` })),
     { title: "APHG adaptive flashcards", desc: "Study all, still learning, weak topics, or missed quiz concepts", href: "aphg-flashcards.html", kind: "Tool" },
     { title: "APHG quiz builder", desc: "Quick, standard, full, topic, weak, and mistake quizzes", href: "aphg-quiz.html", kind: "Tool" },
     { title: "Class materials", desc: "Teacher materials, AMSCO source slot, and vocabulary assignment", href: "aphg.html#materialsTitle", kind: "Sources" },
     { title: "Smart Study Planner", desc: "Assessments, countdowns, daily plans, and focus sessions", href: "planner.html", kind: "Tool" },
     { title: "Study This and Import", desc: "Paste material, scan a worksheet, save a set, or use the notebook", href: "study.html", kind: "Tool" },
     { title: "CSIT Essentials", desc: "Hardware notes, flashcards, and practice quiz", href: "csit-essentials.html", kind: "Subject" },
+    { title: "Biology 1 Honors", desc: "5E Unit 1 lessons, flashcards, mastery, mistakes, and practice", href: "biology.html", kind: "Subject" },
+    { title: "Biology My Mistakes", desc: "Review, retry, and explain missed Biology concepts", href: "biology-mistakes.html", kind: "Tool" },
     { title: "Focus Timer", desc: "Start a focused study session", href: "#focus", kind: "Tool" }
   ];
   input.placeholder = "Search topics, vocabulary, tools—or type “quiz me on 1.6”…";

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   const unit = globalThis.APHG_UNIT1;
-  const bank = globalThis.APHG_QUESTIONS;
+  const applicationBank = globalThis.APHG_QUESTIONS;
   const app = globalThis.StudySpace;
   const builder = document.querySelector("#quizBuilder");
   const shell = document.querySelector("#quizShell");
@@ -23,9 +23,27 @@
     return copy;
   };
   const escape = value => app.escapeHtml(value);
+  const vocabularyBank = unit.vocabulary.map(term => {
+    const distractors = [...new Set(unit.vocabulary.filter(item => item.id !== term.id && item.definition !== term.definition).map(item => item.definition))].slice((term.number * 3) % 20).concat(unit.vocabulary.map(item => item.definition));
+    return {
+      id: `u1vocabq-${String(term.number).padStart(2, "0")}`,
+      subject: "aphg",
+      unit: "1",
+      topic: term.topic,
+      type: "assigned-vocabulary",
+      difficulty: "easy",
+      question: `Which definition matches Assignment ${term.number}: ${term.term}?`,
+      choices: [term.definition, ...distractors.filter(value => value !== term.definition).slice(0, 3)],
+      answer: term.definition,
+      explanation: `${term.term}: ${term.definition}`,
+      relatedTerms: [term.term],
+      source: "Teacher-assigned Unit 1 vocabulary"
+    };
+  });
+  const bank = [...applicationBank, ...vocabularyBank];
   const types = [...new Set(bank.map(question => question.type))];
 
-  document.querySelector("#bankCount").textContent = `${bank.length} questions`;
+  document.querySelector("#bankCount").textContent = `${applicationBank.length} practice + ${vocabularyBank.length} vocab`;
   document.querySelector("#topicChoices").innerHTML = unit.topics.map(topic => `<label><input type="checkbox" name="topic" value="${topic.id}" ${params.get("topic") === topic.id ? "checked" : ""}> ${topic.id} ${escape(topic.title)}</label>`).join("");
   document.querySelector("#typeChoices").innerHTML = types.map(type => `<label><input type="checkbox" name="type" value="${type}" checked> ${escape(type.replace("-", " "))}</label>`).join("");
   if (params.get("mode")) document.querySelector(`input[name="mode"][value="${params.get("mode")}"]`)?.setAttribute("checked", "checked");

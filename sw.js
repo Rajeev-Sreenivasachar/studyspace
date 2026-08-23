@@ -1,4 +1,4 @@
-const CACHE = "studyspace-shell-v1";
+const CACHE = "studyspace-shell-v5";
 const CORE = [
   "./", "index.html", "offline.html", "styles.css", "app.js", "manifest.webmanifest",
   "assets/favicon.svg", "assets/chatbot.css", "assets/chatbot.js", "assets/studyspace-core.js",
@@ -6,7 +6,11 @@ const CORE = [
   "aphg-material.html", "aphg-review.html", "aphg-flashcards.html", "aphg-quiz.html", "planner.html", "study.html",
   "assets/aphg-hub.js", "assets/aphg-topic.js", "assets/aphg-material.js", "assets/aphg-flashcards.js",
   "assets/aphg-quiz.js", "assets/planner.js", "assets/study-import.js", "csit-essentials.html",
-  "csit-module1.html", "csit-module1-flashcards.html", "csit-module1-quiz.html", "csit-data.js", "subject.html"
+  "csit-module1.html", "csit-module1-flashcards.html", "csit-module1-quiz.html", "csit-data.js", "subject.html",
+  "biology.html", "biology-topic.html", "biology-flashcards.html", "biology-quiz.html", "biology-mistakes.html",
+  "biology-material.html", "biology-session.html", "assets/data/biology-course.js", "assets/data/biology-questions.js",
+  "assets/biology-hub.js", "assets/biology-topic.js", "assets/biology-flashcards.js", "assets/biology-quiz.js",
+  "assets/biology-mistakes.js", "assets/biology-material.js", "assets/biology-session.js"
 ];
 
 self.addEventListener("install", event => {

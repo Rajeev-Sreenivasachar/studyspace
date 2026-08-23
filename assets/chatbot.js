@@ -7,11 +7,15 @@
     {label:"CSIT Essentials hub",path:"csit-essentials.html"},{label:"CSIT Module 1 notes",path:"csit-module1.html"},
     {label:"CSIT flashcards",path:"csit-module1-flashcards.html"},{label:"CSIT practice quiz",path:"csit-module1-quiz.html"},
     {label:"APHG Topic 1.1 notes",path:"aphg-topic.html?t=1.1"},{label:"APHG Topic 1.6 notes",path:"aphg-topic.html?t=1.6"},
-    {label:"Smart Study Planner",path:"planner.html"},{label:"Study This / Import",path:"study.html"}
+    {label:"Smart Study Planner",path:"planner.html"},{label:"Study This / Import",path:"study.html"},
+    {label:"Biology 1 Honors hub",path:"biology.html"},{label:"Biology Unit 1 flashcards",path:"biology-flashcards.html"},
+    {label:"Biology Unit 1 practice",path:"biology-quiz.html"},{label:"Biology My Mistakes",path:"biology-mistakes.html"},
+    {label:"Biology 1.1 Properties of Water",path:"biology-topic.html?t=1.1"}
   ];
   function scopeForPage(){
     const path=location.pathname.toLowerCase(),query=new URLSearchParams(location.search),subject=query.get("s");
     if(path.includes("aphg"))return {key:"aphg",label:"AP Human Geography"};
+    if(path.includes("biology"))return {key:"biology",label:"Biology 1 Honors"};
     if(path.includes("csit"))return {key:"csit",label:"CSIT Essentials"};
     if(subject)return {key:`subject-${subject}`,label:subject.replaceAll("-"," ").replace(/\b\w/g,x=>x.toUpperCase())};
     return {key:"general",label:"General StudySpace"};
@@ -25,6 +29,7 @@
 
   const $=selector=>document.querySelector(selector),toggle=$("#ssaiToggle"),panel=$("#ssaiPanel"),close=$("#ssaiClose"),newChat=$("#ssaiNew"),clearAll=$("#ssaiClearAll"),messages=$("#ssaiMessages"),form=$("#ssaiForm"),input=$("#ssaiInput"),send=$("#ssaiSend"),fileInput=$("#ssaiFile"),attach=$("#ssaiAttach"),attachmentBox=$("#ssaiAttachment"),preview=$("#ssaiPreview"),fileName=$("#ssaiFileName"),remove=$("#ssaiRemove"),route=$("#ssaiRoute"),go=$("#ssaiGo"),up=$("#ssaiUp"),down=$("#ssaiDown"),tutorButtons=[...document.querySelectorAll("[data-tutor]")];
   $("#ssaiScope").textContent=`${scope.label} chat • Gemini`;
+  if(scope.key==="biology")input.placeholder="Ask about this sequence, or say ‘quiz me on 1.4’…";
 
   function save(){try{localStorage.setItem(storageKey,JSON.stringify(history.slice(-MAX_STORED)))}catch{}}
   function scrollChat(){messages.scrollTop=messages.scrollHeight}
@@ -37,7 +42,7 @@
   function clearEveryChat(){if(waiting)return;for(let i=localStorage.length-1;i>=0;i--){const key=localStorage.key(i);if(key?.startsWith(PREFIX)||key==="studyspace-ai-history-v1")localStorage.removeItem(key)}history=[];clearAttachment();render();bubble("All saved subject chats were cleared.","ai");input.focus()}
   function selectImage(file,prompt=""){if(!file)return;if(!["image/png","image/jpeg","image/webp"].includes(file.type)){bubble("Use a PNG, JPEG, or WebP screenshot.","ai error");return clearAttachment()}if(file.size>2_500_000){bubble("That screenshot is too large. Choose one under 2.5 MB.","ai error");return clearAttachment()}const reader=new FileReader();reader.onload=()=>{const result=String(reader.result||""),comma=result.indexOf(",");if(comma<0)return clearAttachment();attachment={mimeType:file.type,data:result.slice(comma+1)};preview.src=result;fileName.textContent=file.name;attachmentBox.hidden=false;setOpen(true);if(prompt)input.value=prompt;input.focus()};reader.onerror=()=>{bubble("I couldn't read that screenshot. Please try another image.","ai error");clearAttachment()};reader.readAsDataURL(file)}
   function typing(){const el=document.createElement("div");el.className="ssai-message ai ssai-typing";el.setAttribute("aria-label","StudySpace AI is typing");el.innerHTML="<i></i><i></i><i></i>";messages.appendChild(el);scrollChat();return el}
-  function pageContext(){const main=document.querySelector("main");if(!main)return "";const clone=main.cloneNode(true);clone.querySelectorAll("script,style,button,input,textarea,select,.ssai-panel").forEach(el=>el.remove());return (clone.innerText||clone.textContent||"").replace(/\s+/g," ").trim().slice(0,CONTEXT_LIMIT)}
+  function pageContext(){const main=document.querySelector("main");if(!main)return "";const sections=[...main.querySelectorAll("section[id]")],active=sections.filter(section=>section.getBoundingClientRect().top<=innerHeight*.45).sort((a,b)=>b.getBoundingClientRect().top-a.getBoundingClientRect().top)[0]||sections[0];const metadata=`Subject: ${document.body.dataset.subject||scope.label}; Unit: ${document.body.dataset.unit||"not specified"}; Instructional sequence: ${document.body.dataset.sequence||"not specified"}; Current visible section: ${active?.id||"page overview"}. `;const clone=main.cloneNode(true);clone.querySelectorAll("script,style,button,input,textarea,select,.ssai-panel").forEach(el=>el.remove());return (metadata+(clone.innerText||clone.textContent||"")).replace(/\s+/g," ").trim().slice(0,CONTEXT_LIMIT)}
   function navigate(path,label){bubble(`Opening ${label}…`,"ai",true);setTimeout(()=>{location.href=path},350)}
   function localCommand(message){
     const text=message.toLowerCase().trim(),record=reply=>{bubble(message,"user",true);bubble(reply,"ai",true)};
@@ -45,10 +50,10 @@
     if(/^(scroll\s+)?up\b|scroll up/.test(text)){record("Scrolling up 70% of the page.");window.scrollBy({top:-innerHeight*SCROLL_AMOUNT,behavior:"smooth"});return true}
     if(/(go|scroll).*(top)|^top$/.test(text)){record("Going to the top of the page.");window.scrollTo({top:0,behavior:"smooth"});return true}
     if(/(go|scroll).*(bottom)|^bottom$/.test(text)){record("Going to the bottom of the page.");window.scrollTo({top:document.documentElement.scrollHeight,behavior:"smooth"});return true}
-    const topicMatch=text.match(/(?:topic\s*)?(1\.[1-7])/);
-    if(/quiz me|practice/.test(text)&&topicMatch){bubble(message,"user",true);return navigate(`aphg-quiz.html?mode=topic&topic=${topicMatch[1]}`,`Topic ${topicMatch[1]} quiz`)||true}
-    if(/study my mistakes|mistake quiz|retry missed/.test(text)){bubble(message,"user",true);return navigate("aphg-quiz.html?mode=mistakes","mistake quiz")||true}
-    if(/study.*weak|weakest topic/.test(text)){bubble(message,"user",true);return navigate("aphg-flashcards.html?mode=weak","weak-topic flashcards")||true}
+    const biologyPage=location.pathname.includes("biology"),topicMatch=text.match(biologyPage?/(?:topic|sequence)?\s*(1\.[1-5])/:/(?:topic|sequence)?\s*(1\.[1-7])/);
+    if(/quiz me|practice/.test(text)&&topicMatch){bubble(message,"user",true);return navigate(biologyPage?`biology-quiz.html?mode=topic&topic=${topicMatch[1]}`:`aphg-quiz.html?mode=topic&topic=${topicMatch[1]}`,`${biologyPage?"Biology sequence":"APHG Topic"} ${topicMatch[1]} quiz`)||true}
+    if(/study my mistakes|mistake quiz|retry missed/.test(text)){bubble(message,"user",true);return navigate(biologyPage?"biology-mistakes.html":"aphg-quiz.html?mode=mistakes",biologyPage?"Biology My Mistakes":"mistake quiz")||true}
+    if(/study.*weak|weakest topic|what am i weak at/.test(text)){bubble(message,"user",true);return navigate(biologyPage?"biology-flashcards.html?mode=weak":"aphg-flashcards.html?mode=weak","weak-concept flashcards")||true}
     if(/help me study for|study plan|upcoming test/.test(text)){bubble(message,"user",true);return navigate("planner.html","Smart Study Planner")||true}
     const minutes=text.match(/start.*?(\d{1,2})\s*(?:minute|min)/);
     if(minutes){bubble(message,"user",true);return navigate(`index.html?minutes=${Math.min(60,Math.max(1,Number(minutes[1])))}&focusTask=${encodeURIComponent("StudySpace focus session")}#focus`,`${minutes[1]}-minute focus session`)||true}
@@ -57,8 +62,9 @@
     if(/home|homepage/.test(text))target=ROUTES[0];
     else if(/aphg|human geography/.test(text)){if(/flash/.test(text))target=ROUTES[2];else if(/review|notes|guide/.test(text))target=ROUTES[3];else if(/quiz|test/.test(text))target=ROUTES[4];else target=ROUTES[1]}
     else if(/csit|computer|hardware|module 1/.test(text)){if(/flash/.test(text))target=ROUTES[7];else if(/quiz|test/.test(text))target=ROUTES[8];else if(/notes|module/.test(text))target=ROUTES[6];else target=ROUTES[5]}
-    else if(/flash/.test(text))target=location.pathname.includes("aphg")?ROUTES[2]:location.pathname.includes("csit")?ROUTES[7]:null;
-    else if(/quiz|test/.test(text))target=location.pathname.includes("aphg")?ROUTES[4]:location.pathname.includes("csit")?ROUTES[8]:null;
+    else if(/biology|water|macromolecule|enzyme|cell theory|osmosis|photosynthesis|respiration/.test(text)){if(/flash/.test(text))target=ROUTES.find(item=>item.path==="biology-flashcards.html");else if(/mistake/.test(text))target=ROUTES.find(item=>item.path==="biology-mistakes.html");else if(/quiz|test|practice/.test(text))target=ROUTES.find(item=>item.path==="biology-quiz.html");else target=ROUTES.find(item=>item.path==="biology.html")}
+    else if(/flash/.test(text))target=location.pathname.includes("aphg")?ROUTES[2]:location.pathname.includes("csit")?ROUTES[7]:biologyPage?ROUTES.find(item=>item.path==="biology-flashcards.html"):null;
+    else if(/quiz|test/.test(text))target=location.pathname.includes("aphg")?ROUTES[4]:location.pathname.includes("csit")?ROUTES[8]:biologyPage?ROUTES.find(item=>item.path==="biology-quiz.html"):null;
     if(!target)return false;bubble(message,"user",true);navigate(target.path,target.label);return true;
   }
   async function ask(message,image){const prompt=message||"Please help me understand this screenshot.";if(!image&&localCommand(prompt))return;const fingerprint=`${location.pathname}\n${prompt}\n${image?.data?.slice(0,24)||""}`;if(waiting||fingerprint===lastRequest)return;lastRequest=fingerprint;setWaiting(true);bubble(`${prompt}${image?"\n📷 Screenshot attached":""}`,"user",true);clearAttachment();const loading=typing();try{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000),response=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:prompt,image,history:history.slice(0,-1).slice(-10),pageTitle:document.title,pagePath:location.pathname,pageContext:pageContext()}),signal:controller.signal});clearTimeout(timer);let data={};try{data=await response.json()}catch{}loading.remove();if(!response.ok)throw new Error(data.error||"StudySpace AI is unavailable right now.");bubble(data.reply||"I couldn't create a response. Please try again.","ai",true)}catch(error){loading.remove();bubble(error?.name==="AbortError"?"That took too long. Please try a shorter question.":error?.message||"StudySpace AI is unavailable right now. Please try again later.","ai error")}finally{lastRequest="";setWaiting(false);input.focus()}}
