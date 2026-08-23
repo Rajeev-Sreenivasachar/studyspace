@@ -1,6 +1,6 @@
 import {GoogleGenAI} from "@google/genai";
 
-const MODEL="gemini-2.5-flash-lite";
+const MODEL="gemini-3.5-flash-lite";
 const MESSAGE_LIMIT=1500;
 const CONTEXT_LIMIT=7000;
 const HISTORY_LIMIT=10;
@@ -71,7 +71,7 @@ export default async function handler(req,res){
     const response=await ai.models.generateContent({
       model:MODEL,
       contents,
-      config:{systemInstruction:SYSTEM_INSTRUCTION+contextBlock,maxOutputTokens:600,temperature:0.45}
+      config:{systemInstruction:SYSTEM_INSTRUCTION+contextBlock,maxOutputTokens:600}
     });
     const reply=typeof response.text==="string"?response.text.trim():"";
     if(!reply)return json(res,502,{error:"StudySpace AI returned an empty response. Please try again."});
