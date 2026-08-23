@@ -20,6 +20,8 @@ function siteNav(back = "") {
       <button class="mobile-tour" type="button" data-start-tour aria-label="Replay the StudySpace tour">Tour</button>
       <div class="navlinks">
         <a href="index.html#subjects">Subjects</a>
+        <a href="planner.html">Planner</a>
+        <a href="study.html">Study This</a>
         <a href="index.html#founder">Our story</a>
         <a href="index.html#focus">Focus timer</a>
         <button class="nav-tour" type="button" data-start-tour>Take a tour</button>
@@ -29,7 +31,7 @@ function siteNav(back = "") {
 }
 
 function footer() {
-  return `<footer>StudySpace • founded by Rajeev Sreenivasachar • built to help students lock in</footer>`;
+  return `<footer><span>StudySpace • founded by Rajeev Sreenivasachar • built to help students lock in</span><button class="pwa-install" type="button" hidden>Install StudySpace</button></footer>`;
 }
 
 function syncFavicon() {
@@ -41,6 +43,171 @@ function syncFavicon() {
   }
   icon.type = "image/svg+xml";
   icon.href = "assets/favicon.svg";
+
+  let manifest = document.querySelector('link[rel="manifest"]');
+  if (!manifest) {
+    manifest = document.createElement("link");
+    manifest.rel = "manifest";
+    document.head.appendChild(manifest);
+  }
+  manifest.href = "manifest.webmanifest";
+  let theme = document.querySelector('meta[name="theme-color"]');
+  if (!theme) {
+    theme = document.createElement("meta");
+    theme.name = "theme-color";
+    document.head.appendChild(theme);
+  }
+  theme.content = "#080d1b";
+}
+
+function loadScript(src, done = () => {}) {
+  const existing = document.querySelector(`script[src="${src}"]`);
+  if (existing) {
+    if (existing.dataset.loaded === "true" || src.includes("aphg-unit1") && globalThis.APHG_UNIT1 || src.includes("studyspace-core") && globalThis.StudySpace) done();
+    else existing.addEventListener("load", done, { once: true });
+    return;
+  }
+  const script = document.createElement("script");
+  script.src = src;
+  script.onload = () => { script.dataset.loaded = "true"; done(); };
+  document.body.appendChild(script);
+}
+
+function loadPlatform(done = () => {}) {
+  loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/studyspace-core.js", done));
+}
+
+function renderSmartDashboard() {
+  const hero = document.querySelector(".hero");
+  if (!hero || document.querySelector("#smartDashboard") || !globalThis.StudySpace) return;
+  const data = StudySpace.state;
+  const upcoming = data.assessments.filter(item => (StudySpace.daysUntil(item.date) ?? -1) >= 0).slice(0, 3);
+  const recent = data.quizAttempts.slice(-3).reverse();
+  const weak = StudySpace.weakTopics().slice(0, 3);
+  const cards = Object.values(data.flashcardMastery);
+  const mastered = cards.filter(item => item.status === "mastered").length;
+  const nextAssessment = upcoming[0];
+  const plan = nextAssessment ? StudySpace.generatePlan(nextAssessment).filter(task => !task.complete).slice(0, 2) : [];
+  hero.insertAdjacentHTML("afterend", `<section id="smartDashboard" class="smart-dashboard" aria-labelledby="dashboardTitle">
+    <div class="section-head"><div><div class="eyebrow">Your dashboard</div><h2 id="dashboardTitle">What needs attention now</h2></div><a class="btn small" href="planner.html">Open planner</a></div>
+    <div class="dashboard-grid">
+      <article class="dash-card dash-primary"><span class="dash-icon">▶</span><div class="eyebrow">Continue studying</div><h3>AP Human Geography Unit 1</h3><p>${weak.length ? `Start with Topic ${weak[0].topic}, currently your weakest measured topic.` : "Build your first mastery data with a quick quiz or flashcard round."}</p><a class="link" href="${weak.length ? `aphg-topic.html?t=${weak[0].topic}` : "aphg.html"}">Continue →</a></article>
+      <article class="dash-card"><div class="eyebrow">Upcoming</div>${upcoming.length ? upcoming.map(item => `<a class="dash-row" href="planner.html"><strong>${StudySpace.escapeHtml(item.name)}</strong><span>${StudySpace.countdown(item.date)}</span></a>`).join("") : `<p class="muted">No assessments yet.</p><a class="link" href="planner.html">Add one →</a>`}</article>
+      <article class="dash-card"><div class="eyebrow">Today's plan</div>${plan.length ? plan.map(task => `<div class="dash-row"><strong>${StudySpace.escapeHtml(task.title)}</strong><span>${task.minutes} min</span></div>`).join("") : `<p class="muted">Add an assessment to generate a realistic plan.</p>`}</article>
+      <article class="dash-card"><div class="eyebrow">Recent progress</div><div class="dash-metrics"><span><strong>${mastered}</strong> cards mastered</span><span><strong>${recent[0]?.percentage ?? "—"}${recent[0] ? "%" : ""}</strong> latest quiz</span></div>${weak.length ? `<p class="muted">Weak: ${weak.map(item => `Topic ${item.topic}`).join(", ")}</p>` : `<p class="muted">Mastery appears only after enough activity.</p>`}</article>
+    </div>
+    <div class="quick-actions" aria-label="Quick actions"><a href="study.html">Study This</a><a href="study.html#import">Scan / Import</a><a href="aphg-quiz.html">Practice Quiz</a><a href="aphg-flashcards.html">Flashcards</a><a href="#focus">Focus Timer</a><button type="button" data-dashboard-ai>Ask StudySpace AI</button></div>
+  </section>`);
+  document.querySelector("[data-dashboard-ai]")?.addEventListener("click", () => StudySpace.openAI("Help me choose what to study next based on the StudySpace page and my request." , false));
+}
+
+function upgradeHomeSearch() {
+  const input = document.querySelector("#studySearch");
+  const results = document.querySelector("#searchResults");
+  if (!input || !results || !globalThis.APHG_UNIT1) return;
+  const unit = APHG_UNIT1;
+  const index = [
+    ...unit.topics.map(topic => ({ title: `Topic ${topic.id}: ${topic.title}`, desc: topic.essentials.join(" "), href: `aphg-topic.html?t=${topic.id}`, kind: "APHG topic" })),
+    ...unit.vocabulary.map(term => ({ title: term.term, desc: `${term.definition} ${term.example}`, href: `aphg-review.html?term=${term.id}`, kind: `Vocabulary · Topic ${term.topic}` })),
+    { title: "APHG adaptive flashcards", desc: "Study all, still learning, weak topics, or missed quiz concepts", href: "aphg-flashcards.html", kind: "Tool" },
+    { title: "APHG quiz builder", desc: "Quick, standard, full, topic, weak, and mistake quizzes", href: "aphg-quiz.html", kind: "Tool" },
+    { title: "Class materials", desc: "Teacher materials, AMSCO source slot, and vocabulary assignment", href: "aphg.html#materialsTitle", kind: "Sources" },
+    { title: "Smart Study Planner", desc: "Assessments, countdowns, daily plans, and focus sessions", href: "planner.html", kind: "Tool" },
+    { title: "Study This and Import", desc: "Paste material, scan a worksheet, save a set, or use the notebook", href: "study.html", kind: "Tool" },
+    { title: "CSIT Essentials", desc: "Hardware notes, flashcards, and practice quiz", href: "csit-essentials.html", kind: "Subject" },
+    { title: "Focus Timer", desc: "Start a focused study session", href: "#focus", kind: "Tool" }
+  ];
+  input.placeholder = "Search topics, vocabulary, tools—or type “quiz me on 1.6”…";
+  input.oninput = () => {
+    const query = input.value.trim().toLowerCase();
+    if (!query) return void (results.hidden = true);
+    const commandTopic = query.match(/(?:quiz me|practice|quiz).*?(1\.[1-7])/);
+    const commands = commandTopic ? [{ title: `Start Topic ${commandTopic[1]} quiz`, desc: "Command", href: `aphg-quiz.html?mode=topic&topic=${commandTopic[1]}`, kind: "Action" }] : /study.*weak/.test(query) ? [{ title: "Study weak topics", desc: "Uses your measured mastery", href: "aphg-flashcards.html?mode=weak", kind: "Action" }] : /study.*mistake/.test(query) ? [{ title: "Study my mistakes", desc: "Builds from missed quiz concepts", href: "aphg-flashcards.html?mode=missed", kind: "Action" }] : [];
+    const words = query.split(/\s+/).filter(Boolean);
+    const hits = index.filter(item => words.every(word => `${item.title} ${item.desc} ${item.kind}`.toLowerCase().includes(word))).slice(0, 8);
+    const shown = [...commands, ...hits].slice(0, 8);
+    results.innerHTML = shown.length ? shown.map(item => `<a class="search-item" href="${item.href}"><strong>${StudySpace.escapeHtml(item.title)}</strong><span>${StudySpace.escapeHtml(item.kind)} · ${StudySpace.escapeHtml(item.desc.slice(0, 115))}</span></a>`).join("") : `<a class="search-item" href="study.html"><strong>No match yet — import this material</strong><span>Paste notes or ask StudySpace AI</span></a>`;
+    results.hidden = false;
+  };
+}
+
+function connectFocusTask() {
+  const focus = document.querySelector("#focus");
+  if (!focus) return;
+  const task = new URLSearchParams(location.search).get("focusTask") || sessionStorage.getItem("studyspace-focus-task");
+  if (task) sessionStorage.setItem("studyspace-focus-task", task.slice(0, 160));
+  const heading = focus.querySelector("h3");
+  const status = focus.querySelector("#timerStatus");
+  const timer = focus.querySelector("#timer");
+  const start = focus.querySelector("#timerStart");
+  const reset = focus.querySelector("#timerReset");
+  const initialMinutes = Math.min(60, Math.max(1, Number(new URLSearchParams(location.search).get("minutes")) || 25));
+  let remaining = initialMinutes * 60;
+  let timerId = null;
+  const draw = () => { timer.textContent = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`; };
+  if (task && heading) heading.textContent = task.slice(0, 80);
+  if (status) status.textContent = task ? "Your selected task is ready. Start when you are ready to focus." : "Pick one goal. Work until the timer ends.";
+  start.onclick = () => {
+    if (timerId) {
+      clearInterval(timerId);
+      timerId = null;
+      start.textContent = "Resume";
+      status.textContent = "Paused. Take a breath, then keep going.";
+      return;
+    }
+    start.textContent = "Pause";
+    status.textContent = task ? `Focusing on: ${task}` : "Focus session in progress.";
+    timerId = setInterval(() => {
+      remaining -= 1;
+      draw();
+      if (remaining <= 0) {
+        clearInterval(timerId);
+        timerId = null;
+        start.textContent = "Start again";
+        status.textContent = "Session complete — nice work! Return to your plan when ready.";
+        if (globalThis.StudySpace) StudySpace.update(data => data.studySessions.push({ id: `session-${Date.now()}`, task: task || "Focus session", minutes: initialMinutes, completedAt: new Date().toISOString() }));
+      }
+    }, 1000);
+  };
+  reset.onclick = () => {
+    clearInterval(timerId);
+    timerId = null;
+    remaining = initialMinutes * 60;
+    start.textContent = "Start";
+    status.textContent = task ? "Task ready. Start when you are ready." : "Pick one goal. Work until the timer ends.";
+    draw();
+  };
+  draw();
+}
+
+function registerPwa() {
+  const status = document.createElement("div");
+  status.className = "connection-status";
+  status.setAttribute("role", "status");
+  status.hidden = navigator.onLine;
+  status.textContent = "Offline — saved material still works; StudySpace AI needs internet.";
+  document.body.appendChild(status);
+  const updateConnection = () => { status.hidden = navigator.onLine; };
+  window.addEventListener("online", updateConnection);
+  window.addEventListener("offline", updateConnection);
+  let installPrompt = null;
+  window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    installPrompt = event;
+    document.querySelectorAll(".pwa-install").forEach(button => {
+      button.hidden = false;
+      button.onclick = async () => {
+        if (!installPrompt) return;
+        installPrompt.prompt();
+        await installPrompt.userChoice;
+        installPrompt = null;
+        button.hidden = true;
+      };
+    });
+  });
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
 }
 
 function renderTeam() {
@@ -266,6 +433,12 @@ document.addEventListener("DOMContentLoaded", () => {
     el.innerHTML = footer();
   });
   renderTeam();
+  loadPlatform(() => {
+    renderSmartDashboard();
+    upgradeHomeSearch();
+    connectFocusTask();
+  });
   loadChatbot();
   setupTour();
+  registerPwa();
 });

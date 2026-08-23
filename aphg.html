@@ -1,1 +1,73 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AP Human Geography | StudySpace</title><link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="styles.css"></head><body><div class="wrap"><div data-nav data-back="index.html"></div><main id="main"><header class="page-head"><div class="eyebrow">Subject hub • APHG</div><h1>AP Human <span class="gradient-text">Geography</span></h1><p class="lead">Build your geographic thinking one concept at a time. Unit 1 is ready to study.</p><div class="search-wrap"><label class="sr-only" for="resourceSearch">Search APHG resources</label><input class="search" id="resourceSearch" type="search" placeholder="Search APHG resources…"></div></header><section><div class="section-head"><div><h2>Unit 1: Thinking Geographically</h2><p>17 foundational vocabulary terms, three ways to practice.</p></div><span class="badge">Ready</span></div><div class="resource-grid" id="resourceGrid"><a class="resource-card" href="aphg-flashcards.html" data-search="flashcards terms memory hooks"><div class="icon">🃏</div><h3>Flashcards</h3><p>Flip every term, shuffle the deck, and sort cards into mastered or review.</p><span class="link">Study 17 cards →</span></a><a class="resource-card" href="aphg-review.html" data-search="quick review guide definitions examples"><div class="icon">📝</div><h3>Quick Review</h3><p>See all definitions, examples, and memory hooks in one clean study grid.</p><span class="link">Open review →</span></a><a class="resource-card" href="aphg-quiz.html" data-search="practice quiz questions test"><div class="icon">⚡</div><h3>Practice Quiz</h3><p>Take a fresh randomized 10-question multiple-choice quiz every attempt.</p><span class="link">Start quiz →</span></a></div><p class="muted" id="noResults" hidden>No matching resources. Try “flashcards,” “review,” or “quiz.”</p></section></main><div data-footer></div></div><script src="app.js"></script><script>const s=document.querySelector("#resourceSearch"),cards=[...document.querySelectorAll("[data-search]")],none=document.querySelector("#noResults");s.oninput=()=>{const q=s.value.toLowerCase().trim();let shown=0;cards.forEach(c=>{const ok=!q||c.dataset.search.includes(q)||c.textContent.toLowerCase().includes(q);c.hidden=!ok;if(ok)shown++});none.hidden=shown>0};</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="AP Human Geography Unit 1 topics, class materials, mastery, flashcards, and practice in StudySpace.">
+  <title>AP Human Geography Unit 1 | StudySpace</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <div data-nav data-back="index.html"></div>
+    <main id="main">
+      <header class="page-head unit-hero">
+        <div>
+          <div class="eyebrow">AP Human Geography</div>
+          <h1>Unit 1 — <span class="gradient-text">Thinking Geographically</span></h1>
+          <p class="lead">Seven connected topics, source-aware notes, targeted flashcards, AP-style practice, and mastery that grows from your actual work.</p>
+          <div class="actions">
+            <a class="btn primary" href="aphg-flashcards.html">Study flashcards</a>
+            <a class="btn" href="aphg-quiz.html">Build a quiz</a>
+            <button class="btn" id="studyUnit" type="button">Study This unit</button>
+          </div>
+        </div>
+        <aside class="unit-status panel" aria-label="Unit 1 source and vocabulary status">
+          <div><strong>7</strong><span>Topics</span></div>
+          <div><strong id="vocabAvailable">17</strong><span>Verified assigned terms</span></div>
+          <div><strong id="questionCount">46</strong><span>Practice questions</span></div>
+          <p id="sourceStatus">Teacher material available for Topics 1.1 and 1.6.</p>
+        </aside>
+      </header>
+
+      <section aria-labelledby="masteryTitle">
+        <div class="section-head"><div><h2 id="masteryTitle">Unit 1 mastery map</h2><p>Scores appear only after enough quiz or flashcard evidence.</p></div><span class="badge" id="overallMastery">Not enough data yet</span></div>
+        <div class="mastery-map" id="masteryMap"></div>
+      </section>
+
+      <section aria-labelledby="topicsTitle">
+        <div class="section-head"><div><h2 id="topicsTitle">Topics 1.1–1.7</h2><p>Teacher sources take priority wherever they are actually available.</p></div></div>
+        <div class="search-wrap compact-search"><label class="sr-only" for="resourceSearch">Search Unit 1 topics and tools</label><input class="search" id="resourceSearch" type="search" placeholder="Search choropleth, scale, regions, GIS…"><span id="topicMatches" class="muted" aria-live="polite"></span></div>
+        <div class="topic-grid" id="topicGrid"></div>
+      </section>
+
+      <section aria-labelledby="materialsTitle">
+        <div class="section-head"><div><h2 id="materialsTitle">Class materials</h2><p>Available source records and permanent-file status.</p></div><span class="badge">Source priority enabled</span></div>
+        <div class="materials-groups" id="materialsList"></div>
+        <div class="source-notice"><strong>Original files not attached</strong><p>The system is ready to open permanent repository files, but this workspace did not receive the AMSCO PDF, PowerPoints, or vocabulary worksheet. No temporary computer paths or fabricated downloads are shown.</p></div>
+      </section>
+
+      <section aria-labelledby="toolsTitle">
+        <div class="section-head"><div><h2 id="toolsTitle">Connected study tools</h2><p>Your results feed future practice and mastery.</p></div></div>
+        <div class="resource-grid">
+          <a class="resource-card" href="aphg-flashcards.html" data-searchable="flashcards vocabulary study still learning weak"><div class="icon">🃏</div><h3>Adaptive flashcards</h3><p>Filter by topic, study weak concepts, and save Know It / Still Learning progress.</p><span class="link">Study cards →</span></a>
+          <a class="resource-card" href="aphg-quiz.html" data-searchable="quiz test practice mistakes topics"><div class="icon">⚡</div><h3>Quiz builder</h3><p>Choose length, topics, difficulty, weak-topic practice, or mistake review.</p><span class="link">Build a quiz →</span></a>
+          <a class="resource-card" href="planner.html" data-searchable="planner assessment test schedule tasks"><div class="icon">📅</div><h3>Smart study planner</h3><p>Add an assessment and get a short plan based on time remaining and measured weak topics.</p><span class="link">Plan studying →</span></a>
+        </div>
+      </section>
+
+      <section class="session-launch" aria-labelledby="sessionTitle">
+        <div><div class="eyebrow">Automatic study mode</div><h2 id="sessionTitle">Start a connected session</h2><p class="muted">Review → flashcards → practice → recap, with weak concepts first when enough data exists.</p></div>
+        <div class="actions"><a class="btn" href="aphg-flashcards.html?session=quick">Quick · ~10 min</a><a class="btn primary" href="aphg-flashcards.html?session=normal">Normal · ~20 min</a><a class="btn" href="aphg-flashcards.html?session=deep">Deep · ~30 min</a></div>
+      </section>
+    </main>
+    <div data-footer></div>
+  </div>
+  <script src="assets/data/aphg-unit1.js"></script>
+  <script src="assets/data/question-bank.js"></script>
+  <script src="assets/studyspace-core.js"></script>
+  <script src="app.js"></script>
+  <script src="assets/aphg-hub.js"></script>
+</body>
+</html>

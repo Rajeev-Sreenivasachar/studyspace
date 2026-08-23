@@ -3,5 +3,6 @@
   "version":"1.0.0",
   "private":true,
   "type":"module",
+  "scripts":{"test":"node --test tests/studyspace.test.mjs"},
   "dependencies":{"@google/genai":"^2.18.0"}
 }

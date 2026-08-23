@@ -1,0 +1,37 @@
+const CACHE = "studyspace-shell-v1";
+const CORE = [
+  "./", "index.html", "offline.html", "styles.css", "app.js", "manifest.webmanifest",
+  "assets/favicon.svg", "assets/chatbot.css", "assets/chatbot.js", "assets/studyspace-core.js",
+  "assets/data/aphg-unit1.js", "assets/data/question-bank.js", "aphg.html", "aphg-topic.html",
+  "aphg-material.html", "aphg-review.html", "aphg-flashcards.html", "aphg-quiz.html", "planner.html", "study.html",
+  "assets/aphg-hub.js", "assets/aphg-topic.js", "assets/aphg-material.js", "assets/aphg-flashcards.js",
+  "assets/aphg-quiz.js", "assets/planner.js", "assets/study-import.js", "csit-essentials.html",
+  "csit-module1.html", "csit-module1-flashcards.html", "csit-module1-quiz.html", "csit-data.js", "subject.html"
+];
+
+self.addEventListener("install", event => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+});
+
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  if (request.method !== "GET") return;
+  const url = new URL(request.url);
+  if (url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
+  if (request.mode === "navigate") {
+    event.respondWith(fetch(request).then(response => {
+      const copy = response.clone();
+      caches.open(CACHE).then(cache => cache.put(request, copy));
+      return response;
+    }).catch(() => caches.match(request).then(match => match || caches.match("offline.html"))));
+    return;
+  }
+  event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => {
+    if (response.ok) caches.open(CACHE).then(cache => cache.put(request, response.clone()));
+    return response;
+  })));
+});
