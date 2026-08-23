@@ -1,3 +1,26 @@
-const SUBJECTS={algebra2:["Algebra 2 Honors","➗"],biology:["Biology 1 Honors","🧬"],english:["English 1 Honors","📖"],"csit-foundations":["CSIT Foundations","💻"],"csit-essentials":["CSIT Essentials","🖥️"],orchestra:["Orchestra 1","🎻"],"thinking-skills":["AICE Thinking Skills","💡"]};
-function siteNav(back=""){return `<a class="skip" href="#main">Skip to content</a><nav class="site-nav"><a class="brand" href="index.html" aria-label="StudySpace home"><span class="logo" aria-hidden="true">S</span><span>StudySpace</span></a><div class="navlinks"><a href="index.html#subjects">Subjects</a><a href="aphg.html">AP Human Geography</a>${back?`<a href="${back}">Back</a>`:""}</div></nav>`}function footer(){return `<footer>StudySpace • built for students who are ready to lock in</footer>`}
-function addAI(){document.body.insertAdjacentHTML("beforeend",`<button class="ai-toggle" id="aiToggle" aria-label="Open StudySpace AI" aria-expanded="false">✦</button><aside class="ai-panel" id="aiPanel" aria-label="StudySpace AI" hidden><div class="ai-head"><strong>✦ StudySpace AI</strong><button id="aiClose" aria-label="Close">×</button></div><div class="ai-messages" id="aiMessages" aria-live="polite"><div class="msg bot">Hi! I can help you find a subject, flashcards, a review, or a quiz. What are you studying?</div></div><form class="ai-form" id="aiForm"><label class="sr-only" for="aiInput">Ask for a study resource</label><input id="aiInput" placeholder="Try “biology” or “quiz”" autocomplete="off"><button class="btn primary small">Send</button></form><p class="ai-note">This helper uses local navigation rules—not generated AI. Real AI answers require a secure backend and environment-stored API key.</p></aside>`);const t=document.querySelector("#aiToggle"),p=document.querySelector("#aiPanel"),i=document.querySelector("#aiInput");function toggle(open){p.hidden=!open;t.setAttribute("aria-expanded",open);if(open)i.focus()}t.onclick=()=>toggle(p.hidden);document.querySelector("#aiClose").onclick=()=>toggle(false);document.querySelector("#aiForm").onsubmit=e=>{e.preventDefault();const q=i.value.trim();if(!q)return;document.querySelector("#aiMessages").insertAdjacentHTML("beforeend",`<div class="msg user"></div>`);document.querySelector("#aiMessages .msg.user:last-child").textContent=q;let href="index.html#subjects",label="Browse all subjects";const l=q.toLowerCase();if(l.includes("flash")){href="aphg-flashcards.html";label="Open APHG flashcards"}else if(l.includes("quiz")){href="aphg-quiz.html";label="Open the APHG practice quiz"}else if(l.includes("review")||l.includes("guide")){href="aphg-review.html";label="Open the APHG quick review"}else if(l.includes("human")||l.includes("aphg")||l.includes("geography")){href="aphg.html";label="Open AP Human Geography"}else{for(const [key,[name]] of Object.entries(SUBJECTS))if(l.includes(key.split("-")[0])||l.includes(name.toLowerCase().split(" ")[0])){href=`subject.html?s=${key}`;label=`Open ${name}`;break}}document.querySelector("#aiMessages").insertAdjacentHTML("beforeend",`<div class="msg bot">I found it: <a class="link" href="${href}">${label} →</a></div>`);i.value="";document.querySelector("#aiMessages").scrollTop=9999}}document.addEventListener("DOMContentLoaded",()=>{addAI();document.querySelectorAll("[data-nav]").forEach(el=>el.innerHTML=siteNav(el.dataset.back||""));document.querySelectorAll("[data-footer]").forEach(el=>el.innerHTML=footer())});
+const SUBJECTS={
+  algebra2:["Algebra 2 Honors","➗"],biology:["Biology 1 Honors","🧬"],english:["English 1 Honors","📖"],
+  "csit-foundations":["CSIT Foundations","💻"],"csit-essentials":["CSIT Essentials","🖥️"],
+  orchestra:["Orchestra 1","🎻"],"thinking-skills":["AICE Thinking Skills","💡"]
+};
+
+function siteNav(back=""){
+  return `<a class="skip" href="#main">Skip to content</a><nav class="site-nav"><a class="brand" href="index.html" aria-label="StudySpace home"><span class="logo" aria-hidden="true">S</span><span>StudySpace</span></a><div class="navlinks"><a href="index.html#subjects">Subjects</a><a href="aphg.html">AP Human Geography</a>${back?`<a href="${back}">Back</a>`:""}</div></nav>`;
+}
+
+function footer(){return `<footer>StudySpace • built for students who are ready to lock in</footer>`}
+
+function loadChatbot(){
+  if(!document.querySelector('link[href="assets/chatbot.css"]')){
+    const css=document.createElement("link");css.rel="stylesheet";css.href="assets/chatbot.css";document.head.appendChild(css);
+  }
+  if(!document.querySelector('script[src="assets/chatbot.js"]')){
+    const script=document.createElement("script");script.src="assets/chatbot.js";document.body.appendChild(script);
+  }
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  document.querySelectorAll("[data-nav]").forEach(el=>el.innerHTML=siteNav(el.dataset.back||""));
+  document.querySelectorAll("[data-footer]").forEach(el=>el.innerHTML=footer());
+  loadChatbot();
+});

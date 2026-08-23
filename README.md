@@ -15,4 +15,10 @@ A lightweight, responsive student study site built with plain HTML, CSS, and Jav
 - `csit-module1-flashcards.html` — 60 Module 1 study cards
 - `csit-module1-quiz.html` — randomized 15-question Module 1 practice quiz
 
-The floating StudySpace AI helper is a local resource navigator. Adding generated AI answers later requires a server-side API route and an API key stored in environment variables—never frontend JavaScript.
+The floating StudySpace AI assistant uses a secure serverless route, so its Gemini API key never enters frontend JavaScript.
+
+## StudySpace AI configuration
+
+StudySpace AI calls Google Gemini through the Vercel serverless route at `api/chat.js`. Set `GEMINI_API_KEY` in the Vercel project's environment variables for Production, Preview, and Development, then redeploy. Never place the key in frontend files.
+
+For local serverless development, copy `.env.example` to an untracked `.env.local` and provide your own key. The chatbot uses the stable, cost-efficient `gemini-2.5-flash-lite` model through Google's official `@google/genai` SDK.

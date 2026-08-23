@@ -1,0 +1,7 @@
+{
+  "name":"studyspace",
+  "version":"1.0.0",
+  "private":true,
+  "type":"module",
+  "dependencies":{"@google/genai":"^2.18.0"}
+}
