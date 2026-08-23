@@ -23,4 +23,6 @@ StudySpace AI calls Google Gemini through the Vercel serverless route at `api/ch
 
 The assistant reads a limited amount of visible page text and accepts PNG, JPEG, or WebP screenshots under 2.5 MB for visual study help. Images are sent only with the student's current request and are not stored in local conversation history.
 
+Chat history is stored separately for AP Human Geography, CSIT Essentials, other subject hubs, and general StudySpace use. The assistant also provides a resource navigator and local commands such as `open the APHG quiz`, `scroll down`, `go to the top`, and `go to the bottom`.
+
 For local serverless development, copy `.env.example` to an untracked `.env.local` and provide your own key. The chatbot uses the stable, cost-efficient `gemini-3.5-flash-lite` model through Google's official `@google/genai` SDK.
