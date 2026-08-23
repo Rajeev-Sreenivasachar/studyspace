@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="StudySpace S logo">
+  <defs>
+    <linearGradient id="studyspace-gradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="#080d1b"/>
+  <rect x="4" y="4" width="56" height="56" rx="15" fill="url(#studyspace-gradient)"/>
+  <text x="32" y="45" text-anchor="middle" fill="#06111d" font-family="Arial, sans-serif" font-size="39" font-weight="900">S</text>
+</svg>

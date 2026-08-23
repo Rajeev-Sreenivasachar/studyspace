@@ -25,4 +25,6 @@ The assistant reads a limited amount of visible page text and accepts PNG, JPEG,
 
 Chat history is stored separately for AP Human Geography, CSIT Essentials, other subject hubs, and general StudySpace use. The assistant also provides a resource navigator and local commands such as `open the APHG quiz`, `scroll down`, `go to the top`, and `go to the bottom`.
 
+The homepage includes founder Rajeev Sreenivasachar, promoter Param Vaishya, and an animated first-visit walkthrough that introduces subjects, study resources, and StudySpace AI. Visitors can replay the tour from the navbar.
+
 For local serverless development, copy `.env.example` to an untracked `.env.local` and provide your own key. The chatbot uses the stable, cost-efficient `gemini-3.5-flash-lite` model through Google's official `@google/genai` SDK.
