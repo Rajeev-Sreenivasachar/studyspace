@@ -21,4 +21,6 @@ The floating StudySpace AI assistant uses a secure serverless route, so its Gemi
 
 StudySpace AI calls Google Gemini through the Vercel serverless route at `api/chat.js`. Set `GEMINI_API_KEY` in the Vercel project's environment variables for Production, Preview, and Development, then redeploy. Never place the key in frontend files.
 
+The assistant reads a limited amount of visible page text and accepts PNG, JPEG, or WebP screenshots under 2.5 MB for visual study help. Images are sent only with the student's current request and are not stored in local conversation history.
+
 For local serverless development, copy `.env.example` to an untracked `.env.local` and provide your own key. The chatbot uses the stable, cost-efficient `gemini-3.5-flash-lite` model through Google's official `@google/genai` SDK.
