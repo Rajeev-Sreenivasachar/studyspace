@@ -1,215 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AP Human Geography — Unit 1 Vocab 1–17</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudySpace</title>
 <style>
-  :root{
-    --bg:#0f172a; --panel:#111827; --panel2:#1f2937; --text:#f8fafc;
-    --muted:#94a3b8; --accent:#60a5fa; --good:#34d399; --bad:#fb7185;
-    --shadow:0 18px 50px rgba(0,0,0,.35);
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:
-  radial-gradient(circle at top,#172554 0,#0f172a 40%,#020617 100%);color:var(--text);min-height:100vh}
-  .wrap{max-width:950px;margin:auto;padding:28px 18px 50px}
-  h1{font-size:clamp(28px,5vw,46px);margin:0 0 8px}
-  .sub{color:var(--muted);margin-bottom:24px}
-  .topbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
-  button{border:0;border-radius:14px;padding:12px 16px;font-weight:700;cursor:pointer;background:#1e293b;color:white}
-  button:hover{filter:brightness(1.12)}
-  button.primary{background:var(--accent);color:#08111f}
-  button.good{background:var(--good);color:#06281f}
-  button.bad{background:var(--bad);color:#2d0610}
-  .stats{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0 22px}
-  .pill{background:rgba(255,255,255,.07);padding:9px 12px;border-radius:999px;color:#cbd5e1;font-size:14px}
-  .card-shell{perspective:1200px}
-  .card{height:420px;position:relative;transform-style:preserve-3d;transition:transform .55s;cursor:pointer}
-  .card.flipped{transform:rotateY(180deg)}
-  .face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid rgba(255,255,255,.08);
-  border-radius:26px;padding:30px;background:linear-gradient(145deg,#111827,#1e293b);box-shadow:var(--shadow);
-  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
-  .back{transform:rotateY(180deg);align-items:flex-start;text-align:left;justify-content:flex-start;overflow:auto}
-  .num{position:absolute;top:20px;left:22px;color:var(--muted);font-weight:700}
-  .term{font-size:clamp(30px,6vw,54px);font-weight:900;line-height:1.05}
-  .hint{position:absolute;bottom:20px;color:var(--muted);font-size:14px}
-  .label{text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--accent);font-weight:800;margin:8px 0 6px}
-  .definition{font-size:22px;line-height:1.45;margin-bottom:12px}
-  .example{font-size:18px;line-height:1.5;color:#dbeafe}
-  .memory{font-size:16px;color:#cbd5e1;margin-top:8px}
-  .nav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
-  .rate{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .progress{height:10px;background:#1e293b;border-radius:999px;overflow:hidden;margin:18px 0}
-  .bar{height:100%;background:linear-gradient(90deg,#60a5fa,#34d399);width:0}
-  .quiz{display:none;background:rgba(17,24,39,.95);padding:24px;border-radius:24px;box-shadow:var(--shadow)}
-  .quiz h2{margin-top:0}
-  .choice{display:block;width:100%;text-align:left;margin:10px 0;padding:14px;background:#1e293b;border-radius:12px}
-  .choice.correct{outline:2px solid var(--good)}
-  .choice.wrong{outline:2px solid var(--bad)}
-  .small{color:var(--muted);font-size:13px}
-  footer{margin-top:28px;color:#64748b;font-size:13px;text-align:center}
-  @media(max-width:600px){.card{height:500px}.definition{font-size:19px}.example{font-size:16px}}
+:root{--bg:#0b1020;--panel:#11182d;--panel2:#18213a;--text:#f8fafc;--muted:#94a3b8;--accent:#7dd3fc;--accent2:#a78bfa;--border:rgba(255,255,255,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);background:radial-gradient(circle at 10% 0%,rgba(125,211,252,.15),transparent 28%),radial-gradient(circle at 90% 10%,rgba(167,139,250,.15),transparent 30%),var(--bg);min-height:100vh}a{color:inherit;text-decoration:none}.wrap{max-width:1180px;margin:auto;padding:0 20px 60px}nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900}.logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#07111d;font-weight:1000}.navlinks{display:flex;gap:10px;flex-wrap:wrap}.navlinks a{color:#cbd5e1;padding:10px 12px;border-radius:10px}.navlinks a:hover{background:rgba(255,255,255,.06)}
+.hero{padding:65px 0 45px;display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:center}.eyebrow{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12px}h1{font-size:clamp(42px,7vw,78px);line-height:.98;margin:12px 0 18px;letter-spacing:-.045em}.hero p{color:#cbd5e1;font-size:19px;line-height:1.6;max-width:650px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 18px;border-radius:14px;background:var(--panel2);border:1px solid var(--border);font-weight:800;cursor:pointer;color:white}.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06111d;border:0}.hero-card{background:linear-gradient(145deg,rgba(17,24,45,.95),rgba(24,33,58,.95));border:1px solid var(--border);border-radius:26px;padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.3)}.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mini{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:18px;padding:18px;min-height:120px}.mini .icon{font-size:24px}.mini h3{margin:10px 0 6px}.mini p{font-size:14px;margin:0;color:var(--muted)}
+section{margin-top:52px}.section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:18px}h2{font-size:30px;margin:0}.section-head p{margin:0;color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:linear-gradient(145deg,var(--panel),var(--panel2));border:1px solid var(--border);border-radius:20px;padding:20px;min-height:190px;transition:.18s}.card:hover{transform:translateY(-3px);border-color:rgba(125,211,252,.28)}.card .icon{font-size:28px}.card h3{margin:14px 0 8px}.card p{color:var(--muted);line-height:1.5;margin:0 0 16px}.card .link{color:var(--accent);font-weight:800;font-size:14px}.featured{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.study-set,.focus{border-radius:22px;padding:24px;border:1px solid var(--border)}.study-set{background:linear-gradient(135deg,rgba(125,211,252,.12),rgba(167,139,250,.12))}.focus{background:linear-gradient(145deg,var(--panel),var(--panel2))}.study-set h3{font-size:24px;margin:8px 0}.study-set p{color:#cbd5e1;line-height:1.55}.tags{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.tag{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:999px;padding:7px 10px;font-size:13px;color:#dbeafe}.timer{font-size:54px;font-weight:900;letter-spacing:-.04em;margin:12px 0 16px}footer{margin-top:60px;color:#64748b;font-size:14px;text-align:center}@media(max-width:900px){.hero,.featured{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}}@media(max-width:580px){.navlinks{display:none}.cards{grid-template-columns:1fr}.mini-grid{grid-template-columns:1fr}.hero{padding-top:42px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>AP Human Geography — Unit 1</h1>
-  <div class="sub">Vocab #1–17 • flashcards + quiz mode</div>
-
-  <div class="topbar">
-    <button class="primary" onclick="showFlashcards()">Flashcards</button>
-    <button onclick="startQuiz()">Quiz Mode</button>
-    <button onclick="shuffleCards()">Shuffle</button>
-    <button onclick="resetProgress()">Reset Progress</button>
-  </div>
-
-  <div id="flashArea">
-    <div class="stats">
-      <div class="pill" id="counter">1 / 17</div>
-      <div class="pill" id="mastered">0 mastered</div>
-      <div class="pill" id="again">0 to review</div>
-    </div>
-
-    <div class="progress"><div class="bar" id="bar"></div></div>
-
-    <div class="card-shell">
-      <div class="card" id="card" onclick="flipCard()">
-        <div class="face front">
-          <div class="num" id="num"></div>
-          <div class="term" id="term"></div>
-          <div class="hint">click to flip</div>
-        </div>
-        <div class="face back">
-          <div class="num" id="num2"></div>
-          <div class="label">definition</div>
-          <div class="definition" id="definition"></div>
-          <div class="label">example</div>
-          <div class="example" id="example"></div>
-          <div class="label">memory hook</div>
-          <div class="memory" id="memory"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="nav">
-      <button onclick="prevCard()">← Previous</button>
-      <button onclick="nextCard()">Next →</button>
-    </div>
-    <div class="rate">
-      <button class="bad" onclick="markAgain()">Study Again</button>
-      <button class="good" onclick="markKnown()">I Know This</button>
-    </div>
-  </div>
-
-  <div class="quiz" id="quizArea">
-    <h2 id="quizTitle">Quiz</h2>
-    <div id="quizQuestion" style="font-size:24px;font-weight:800;margin:16px 0"></div>
-    <div id="choices"></div>
-    <div id="quizFeedback" style="margin-top:14px;font-weight:700"></div>
-    <div style="margin-top:18px">
-      <button class="primary" id="nextQ" onclick="nextQuestion()" style="display:none">Next Question</button>
-    </div>
-    <p class="small" id="quizScore"></p>
-  </div>
-
-  <footer>Definitions are based on your uploaded AMSCO Unit 1 chapter, simplified slightly for studying.</footer>
+<nav><div class="brand"><div class="logo">S</div><span>StudySpace</span></div><div class="navlinks"><a href="#tools">Tools</a><a href="#sets">Study Sets</a><a href="#focus">Focus</a></div></nav>
+<main class="hero"><div><div class="eyebrow">study smarter, not longer</div><h1>your study home base.</h1><p>Flashcards, quizzes, notes, focus tools, and study sets in one place. Built for students who want something simple, fast, and actually useful.</p><div class="actions"><a class="btn primary" href="#sets">Start Studying</a><a class="btn" href="#tools">Explore Tools</a></div></div><div class="hero-card"><div class="mini-grid"><div class="mini"><div class="icon">🧠</div><h3>Flashcards</h3><p>Flip through terms and track what you know.</p></div><div class="mini"><div class="icon">⚡</div><h3>Quick Quizzes</h3><p>Test yourself with randomized questions.</p></div><div class="mini"><div class="icon">📝</div><h3>Study Notes</h3><p>Keep the important stuff short and organized.</p></div><div class="mini"><div class="icon">⏱️</div><h3>Focus Mode</h3><p>Use a timer and lock in for one study session.</p></div></div></div></main>
+<section id="tools"><div class="section-head"><div><h2>Study tools</h2><p>Everything you need in one dashboard.</p></div></div><div class="cards"><div class="card"><div class="icon">🃏</div><h3>Flashcards</h3><p>Review vocab, definitions, examples, and memory hooks.</p><div class="link">Open flashcards →</div></div><div class="card"><div class="icon">✅</div><h3>Quiz Generator</h3><p>Turn a study set into multiple-choice or short-answer questions.</p><div class="link">Start a quiz →</div></div><div class="card"><div class="icon">📚</div><h3>Study Guides</h3><p>Break down big units into simple, organized review sheets.</p><div class="link">View guides →</div></div><div class="card"><div class="icon">📆</div><h3>Study Planner</h3><p>Plan what to study before your next quiz, test, or exam.</p><div class="link">Plan a session →</div></div></div></section>
+<section id="sets"><div class="section-head"><div><h2>Featured study set</h2><p>Your first real set is already connected.</p></div></div><div class="featured"><div class="study-set"><div class="eyebrow">AP Human Geography</div><h3>Unit 1 Vocab — Terms 1–17</h3><p>Review the first 17 Unit 1 vocabulary terms with definitions, examples, memory hooks, progress tracking, and quiz mode.</p><div class="tags"><span class="tag">17 terms</span><span class="tag">flashcards</span><span class="tag">quiz mode</span><span class="tag">examples</span></div><a class="btn primary" href="AP_Human_Geography_Unit1_Vocab_Flashcards.html">Open Study Set</a></div><div class="focus" id="focus"><div class="eyebrow">focus session</div><h3>25-minute lock-in</h3><div class="timer" id="timer">25:00</div><div class="actions"><button class="btn primary" onclick="startTimer()">Start</button><button class="btn" onclick="resetTimer()">Reset</button></div><p style="color:var(--muted);margin-top:14px">Pick one study set and work until the timer ends.</p></div></div></section>
+<section><div class="section-head"><div><h2>Coming next</h2><p>Easy upgrades you can add later.</p></div></div><div class="cards"><div class="card"><div class="icon">📤</div><h3>Upload Notes</h3><p>Turn class notes or PDFs into flashcards and quizzes.</p></div><div class="card"><div class="icon">🏆</div><h3>Streaks</h3><p>Track how many days in a row you studied.</p></div><div class="card"><div class="icon">👥</div><h3>Shared Sets</h3><p>Let classmates study the same material.</p></div><div class="card"><div class="icon">📈</div><h3>Progress</h3><p>See your strongest and weakest topics over time.</p></div></div></section>
+<footer>StudySpace • built for students</footer>
 </div>
-
 <script>
-const vocab = [
-{n:1,t:"Absolute direction",d:"A fixed direction using cardinal or intermediate directions, such as north, south, east, west, northeast, or southwest.",e:"Florida is south of Georgia.",m:"absolute direction = N / S / E / W"},
-{n:2,t:"Absolute distance",d:"The exact distance between places, usually measured in feet, miles, meters, or kilometers.",e:"Your school is 2.2 miles from your house.",m:"absolute distance = exact measurement"},
-{n:3,t:"Absolute location",d:"The precise spot where something is located according to a system, most commonly latitude and longitude.",e:"Mexico City is about 19°N, 99°W.",m:"absolute location = coordinates"},
-{n:4,t:"Area distortion",d:"A map projection error that makes the size or area of a place appear different from its real size.",e:"On a Mercator projection, Greenland appears much larger than it really is compared with Africa.",m:"area distortion = wrong size"},
-{n:5,t:"Clustering",d:"A distribution pattern in which phenomena are arranged in a group or concentrated area.",e:"Restaurants grouped together in a mall food court.",m:"clustering = grouped together"},
-{n:6,t:"Direction distortion",d:"A map projection error in which directions between places are not represented accurately.",e:"A projection may preserve shape but make direction less accurate.",m:"direction distortion = wrong direction"},
-{n:7,t:"Dispersal",d:"A distribution pattern in which phenomena are spread out over a large area.",e:"Large shopping malls spread throughout a city.",m:"dispersal = spread out"},
-{n:8,t:"Distance decay",d:"The concept that interaction and connection between places usually decrease as distance increases.",e:"A store usually has more influence on nearby customers than people who live far away.",m:"farther apart = less interaction"},
-{n:9,t:"Distance distortion",d:"A map projection error in which the distance between places is shown inaccurately.",e:"Two places may look closer together or farther apart than they really are.",m:"distance distortion = wrong distance"},
-{n:10,t:"Elevation",d:"The distance of a feature above sea level, usually measured in feet or meters.",e:"Mount Everest has an elevation of more than 29,000 feet.",m:"elevation = height above sea level"},
-{n:11,t:"Environmental determinism",d:"The belief that landforms and climate are the most powerful forces shaping human behavior and societal development, while underestimating culture.",e:"Claiming that a society developed mainly because of its climate.",m:"environment controls society"},
-{n:12,t:"Field observation",d:"Physically visiting a location, place, or region and recording firsthand information there.",e:"A geographer visits a neighborhood, takes photos, counts buildings, and interviews people.",m:"go there + observe it yourself"},
-{n:13,t:"Flow",d:"The patterns and movement of ideas, people, products, and other phenomena between places.",e:"People migrating from one country to another.",m:"flow = movement"},
-{n:14,t:"Formal region",d:"A region united by one or more shared traits, such as political, physical, cultural, or economic characteristics.",e:"The Sahara is a formal region because it shares desert characteristics.",m:"formal = shared trait"},
-{n:15,t:"Functional region",d:"A region organized around a focal point or node and connected by an activity, network, or interaction.",e:"A pizza shop and the area where it delivers.",m:"functional = node + connections"},
-{n:16,t:"Geographic Information System (GIS)",d:"A computer system that can store, analyze, and display information from multiple digital maps or geospatial data sets.",e:"A city uses GIS to map crime locations, roads, land use, and pollution.",m:"GIS = computer map layers"},
-{n:17,t:"Geographical data",d:"Information about places or geographic phenomena that geographers collect and analyze to understand spatial patterns and relationships.",e:"Population counts, interviews, field notes, maps, and satellite images can all be geographic data.",m:"data about places"}
+let total=25*60,remaining=total,interval=null;function drawTimer(){const m=Math.floor(remaining/60).toString().padStart(2,'0');const s=(remaining%60).toString().padStart(2,'0');document.getElementById('timer').textContent=`${m}:${s}`}function startTimer(){if(interval)return;interval=setInterval(()=>{if(remaining<=0){clearInterval(interval);interval=null;alert('focus session done 🔥');return}remaining--;drawTimer()},1000)}function resetTimer(){clearInterval(interval);interval=null;remaining=total;drawTimer()}const searchData = [
+  {title:"AP Human Geography — Unit 1 Vocab", desc:"17-term flashcard set with quiz mode.", href:"AP_Human_Geography_Unit1_Vocab_Flashcards.html"},
+  {title:"Flashcards", desc:"Review terms, definitions, examples, and memory hooks.", href:"#tools"},
+  {title:"Quiz Generator", desc:"Test yourself with randomized questions.", href:"#tools"},
+  {title:"Study Guides", desc:"Simple organized review sheets for big units.", href:"#tools"},
+  {title:"Study Planner", desc:"Plan what to study before quizzes and exams.", href:"#tools"},
+  {title:"Focus Mode", desc:"Use the 25-minute focus timer.", href:"#focus"},
+  {title:"Shared Sets", desc:"Study with classmates using the same material.", href:"#sets"},
+  {title:"Progress", desc:"Track strengths, weak areas, and mastered topics.", href:"#sets"}
 ];
 
-let order=[...Array(vocab.length).keys()], pos=0;
-let known=new Set(), review=new Set();
+function runSearch(){
+  const input = document.getElementById("studySearch");
+  const box = document.getElementById("searchResults");
+  const q = input.value.trim().toLowerCase();
 
-function current(){ return vocab[order[pos]]; }
-function render(){
-  const v=current();
-  card.classList.remove("flipped");
-  num.textContent=`#${v.n}`; num2.textContent=`#${v.n}`;
-  term.textContent=v.t; definition.textContent=v.d; example.textContent=v.e; memory.textContent=v.m;
-  counter.textContent=`${pos+1} / ${vocab.length}`;
-  mastered.textContent=`${known.size} mastered`;
-  again.textContent=`${review.size} to review`;
-  bar.style.width=`${Math.round((known.size/vocab.length)*100)}%`;
-}
-function flipCard(){ card.classList.toggle("flipped"); }
-function nextCard(){ pos=(pos+1)%order.length; render(); }
-function prevCard(){ pos=(pos-1+order.length)%order.length; render(); }
-function markKnown(){ known.add(order[pos]); review.delete(order[pos]); nextCard(); }
-function markAgain(){ review.add(order[pos]); known.delete(order[pos]); nextCard(); }
-function shuffleCards(){ order.sort(()=>Math.random()-.5); pos=0; render(); }
-function resetProgress(){ known.clear(); review.clear(); order=[...Array(vocab.length).keys()]; pos=0; render(); }
-
-function showFlashcards(){ quizArea.style.display="none"; flashArea.style.display="block"; }
-
-let qIndex=0, qScore=0, qOrder=[], answered=false;
-function startQuiz(){
-  flashArea.style.display="none"; quizArea.style.display="block";
-  qOrder=[...Array(vocab.length).keys()].sort(()=>Math.random()-.5).slice(0,10);
-  qIndex=0; qScore=0; answered=false; renderQuestion();
-}
-function renderQuestion(){
-  answered=false; nextQ.style.display="none"; quizFeedback.textContent="";
-  const idx=qOrder[qIndex], correct=vocab[idx];
-  quizTitle.textContent=`Quiz Question ${qIndex+1} / ${qOrder.length}`;
-  quizQuestion.textContent=`Which term matches this definition?\n\n${correct.d}`;
-  let choices=[idx];
-  while(choices.length<4){
-    let r=Math.floor(Math.random()*vocab.length);
-    if(!choices.includes(r)) choices.push(r);
-  }
-  choices.sort(()=>Math.random()-.5);
-  const holder=document.getElementById("choices"); holder.innerHTML="";
-  choices.forEach(i=>{
-    const b=document.createElement("button");
-    b.className="choice"; b.textContent=vocab[i].t;
-    b.onclick=()=>answerChoice(b,i,idx);
-    holder.appendChild(b);
-  });
-  quizScore.textContent=`Score: ${qScore} / ${qIndex}`;
-}
-function answerChoice(btn, picked, correct){
-  if(answered) return; answered=true;
-  [...document.querySelectorAll(".choice")].forEach(b=>{
-    if(b.textContent===vocab[correct].t) b.classList.add("correct");
-  });
-  if(picked===correct){ qScore++; quizFeedback.textContent="✅ correct"; }
-  else { btn.classList.add("wrong"); quizFeedback.textContent=`❌ correct answer: ${vocab[correct].t}`; }
-  quizScore.textContent=`Score: ${qScore} / ${qIndex+1}`;
-  nextQ.style.display="inline-block";
-}
-function nextQuestion(){
-  qIndex++;
-  if(qIndex>=qOrder.length){
-    quizQuestion.textContent=`Finished — ${qScore} / ${qOrder.length}`;
-    choices.innerHTML="";
-    quizFeedback.textContent=qScore>=8 ? "🔥 solid. run it again and try for 10/10." : "run it back. focus on the ones you missed.";
-    nextQ.style.display="none";
-    quizScore.textContent="";
+  if(!q){
+    box.style.display = "none";
+    box.innerHTML = "";
     return;
   }
-  renderQuestion();
+
+  const matches = searchData.filter(item =>
+    item.title.toLowerCase().includes(q) ||
+    item.desc.toLowerCase().includes(q)
+  );
+
+  box.innerHTML = matches.length
+    ? matches.map(item => `
+      <div class="search-item" onclick="window.location.href='${item.href}'">
+        <strong>${item.title}</strong>
+        <span>${item.desc}</span>
+      </div>
+    `).join("")
+    : `<div class="search-item"><strong>No results</strong><span>Try searching "AP Human Geography", "quiz", or "focus".</span></div>`;
+
+  box.style.display = "block";
 }
-render();
+
+document.addEventListener("keydown", e => {
+  if(e.key === "/" && document.activeElement.tagName !== "INPUT"){
+    e.preventDefault();
+    document.getElementById("studySearch").focus();
+  }
+});
+
+drawTimer();
 </script>
 </body>
 </html>
