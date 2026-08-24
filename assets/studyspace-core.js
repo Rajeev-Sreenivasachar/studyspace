@@ -7,7 +7,7 @@
 
   function defaults() {
     return {
-      version: 2,
+      version: 3,
       assessments: [],
       planTasks: [],
       quizAttempts: [],
@@ -32,7 +32,7 @@
     return {
       ...base,
       ...candidate,
-      version: 2,
+      version: 3,
       assessments: Array.isArray(candidate.assessments) ? candidate.assessments : [],
       planTasks: Array.isArray(candidate.planTasks) ? candidate.planTasks : [],
       quizAttempts: Array.isArray(candidate.quizAttempts) ? candidate.quizAttempts.slice(-MAX_ATTEMPTS) : [],
@@ -81,6 +81,26 @@
     });
   }
 
+  function migrateV3() {
+    if (state.meta.migratedV3) return;
+    update(data => {
+      Object.entries(data.questionPerformance).forEach(([id, item]) => {
+        if (!item.subject && id.startsWith("alg")) item.subject = "algebra2";
+      });
+      Object.entries(data.flashcardMastery).forEach(([id, item]) => {
+        if (!item.subject && id.startsWith("alg-")) item.subject = "algebra2";
+      });
+      data.mistakes.forEach(item => {
+        if (!item.subject && String(item.questionId || "").startsWith("alg")) item.subject = "algebra2";
+        if (!item.mistakeCategory) item.mistakeCategory = "Review the concept and operation used";
+        if (typeof item.reviewed !== "boolean") item.reviewed = false;
+        if (typeof item.laterCorrected !== "boolean") item.laterCorrected = false;
+      });
+      data.meta.migratedV3 = true;
+      data.meta.migratedV3At = new Date().toISOString();
+    });
+  }
+
   function save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -124,8 +144,9 @@
       data.flashcardMastery[term.id] = {
         ...current,
         term: term.term,
+        concept: term.concept || term.term,
         topic: term.topic,
-        subject: term.subject || (term.id.startsWith("bio-") ? "biology" : "aphg"),
+        subject: term.subject || (term.id.startsWith("bio-") ? "biology" : term.id.startsWith("alg-") ? "algebra2" : "aphg"),
         status,
         seen: (current.seen || 0) + 1,
         correct: (current.correct || 0) + (status === "mastered" ? 1 : 0),
@@ -179,7 +200,13 @@
           wrongAnswer: result.picked,
           correctAnswer: result.answer,
           explanation: result.explanation,
+          mistakeCategory: result.mistakeCategory || "Review the concept and operation used",
+          reviewed: false,
+          laterCorrected: false,
           timestamp: normalizedAttempt.createdAt
+        });
+        else data.mistakes.forEach(item => {
+          if (item.subject === normalizedAttempt.subject && !item.laterCorrected && (item.questionId === result.questionId || item.concept === result.concept)) item.laterCorrected = true;
         });
       });
       data.mistakes = data.mistakes.slice(-MAX_MISTAKES);
@@ -197,7 +224,7 @@
     const cardSeen = cardRecords.length;
     const mastered = cardRecords.filter(item => item.status === "mastered").length;
     const evidence = quizTotal + cardSeen;
-    if (evidence < 3) return { topic: topicId, score: null, label: subject === "biology" ? (evidence ? "Learning" : "Not Started") : "Not enough data yet", evidence };
+    if (evidence < 3) return { topic: topicId, score: null, label: subject !== "aphg" ? (evidence ? "Learning" : "Not Started") : "Not enough data yet", evidence };
 
     let weighted = 0;
     let weight = 0;
@@ -212,7 +239,7 @@
       weight += 0.3;
     }
     const score = Math.round((weighted / weight) * 100);
-    const label = subject === "biology" ? (score >= 90 ? "Mastered" : score >= 80 ? "Strong" : score >= 60 ? "Developing" : "Learning") : (score >= 80 ? "Strong" : score >= 60 ? "Developing" : "Weak");
+    const label = subject !== "aphg" ? (score >= 90 ? "Mastered" : score >= 80 ? "Strong" : score >= 60 ? "Developing" : "Learning") : (score >= 80 ? "Strong" : score >= 60 ? "Developing" : "Weak");
     return { topic: topicId, score, label, evidence, quizTotal, cardSeen };
   }
 
@@ -221,7 +248,7 @@
     const records = Object.values(state.questionPerformance).filter(item => item.subject === subject && [item.concept, ...(item.relatedTerms || [])].some(value => String(value || "").toLowerCase() === needle));
     const quizTotal = records.reduce((sum, item) => sum + (item.total || 0), 0);
     const quizCorrect = records.reduce((sum, item) => sum + (item.correct || 0), 0);
-    const cards = Object.values(state.flashcardMastery).filter(item => item.subject === subject && String(item.term || "").toLowerCase().includes(needle));
+    const cards = Object.values(state.flashcardMastery).filter(item => item.subject === subject && [item.concept, item.term].some(value => String(value || "").toLowerCase().includes(needle)));
     const evidence = quizTotal + cards.length;
     if (!evidence) return { concept, score: null, label: "Not Started", evidence: 0 };
     if (evidence < 3) return { concept, score: null, label: "Learning", evidence };
@@ -232,6 +259,14 @@
   }
 
   function mistakesFor(subject) { return state.mistakes.filter(item => !subject || item.subject === subject).slice().reverse(); }
+
+  function markMistakeReviewed(id, reviewed = true) {
+    update(data => { const item = data.mistakes.find(entry => entry.id === id); if (item) item.reviewed = Boolean(reviewed); });
+  }
+
+  function markMistakeCorrected(id, corrected = true) {
+    update(data => { const item = data.mistakes.find(entry => entry.id === id); if (item) item.laterCorrected = Boolean(corrected); });
+  }
 
   function allMastery(unit = globalThis.APHG_UNIT1) {
     return (unit?.topics || []).map(topic => ({ ...topicMastery(topic.id, unit), title: topic.title }));
@@ -430,6 +465,7 @@
   }
 
   migrateV2();
+  migrateV3();
   migrateLegacy();
   globalThis.StudySpace = {
     storageKey: STORAGE_KEY,
@@ -443,6 +479,8 @@
     weakTopics,
     conceptMastery,
     mistakesFor,
+    markMistakeReviewed,
+    markMistakeCorrected,
     addAssessment,
     deleteAssessment,
     daysUntil,

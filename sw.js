@@ -1,4 +1,4 @@
-const CACHE = "studyspace-shell-v5";
+const CACHE = "studyspace-shell-v7";
 const CORE = [
   "./", "index.html", "offline.html", "styles.css", "app.js", "manifest.webmanifest",
   "assets/favicon.svg", "assets/chatbot.css", "assets/chatbot.js", "assets/studyspace-core.js",
@@ -10,7 +10,11 @@ const CORE = [
   "biology.html", "biology-topic.html", "biology-flashcards.html", "biology-quiz.html", "biology-mistakes.html",
   "biology-material.html", "biology-session.html", "assets/data/biology-course.js", "assets/data/biology-questions.js",
   "assets/biology-hub.js", "assets/biology-topic.js", "assets/biology-flashcards.js", "assets/biology-quiz.js",
-  "assets/biology-mistakes.js", "assets/biology-material.js", "assets/biology-session.js"
+  "assets/biology-mistakes.js", "assets/biology-material.js", "assets/biology-session.js",
+  "algebra2.html", "algebra2-section.html", "algebra2-practice.html", "algebra2-flashcards.html",
+  "algebra2-mistakes.html", "algebra2-session.html", "assets/data/algebra2-chapter1.js", "assets/algebra2-math.js",
+  "assets/algebra2-hub.js", "assets/algebra2-section.js", "assets/algebra2-practice-engine.js",
+  "assets/algebra2-practice.js", "assets/algebra2-flashcards.js", "assets/algebra2-mistakes.js", "assets/algebra2-session.js"
 ];
 
 self.addEventListener("install", event => {

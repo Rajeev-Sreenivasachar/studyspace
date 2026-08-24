@@ -15,6 +15,10 @@ StudySpace is a responsive, installable study workspace built with plain HTML, C
 - `biology-topic.html?s=1.1` — reusable 5E sequence page for Biology Unit 1 Sequences 1.1–1.5
 - `biology-flashcards.html`, `biology-quiz.html`, and `biology-mistakes.html` — persistent adaptive practice and mistake review
 - `biology-session.html` — a guided session that starts with the weakest measured Biology sequence
+- `algebra2.html` — Algebra 2 Honors Chapter 1 hub with six-section mastery, continuation, weak skills, and mistake review
+- `algebra2-section.html?s=1.1` — reusable Learn → Visual → Worked Example → Try It → Mastery flow for Sections 1.1–1.6
+- `algebra2-practice.html`, `algebra2-flashcards.html`, and `algebra2-mistakes.html` — generated math practice, quick rule review, and misconception recovery
+- `algebra2-session.html` — a connected session beginning with the weakest measured Algebra 2 skill
 - `planner.html` — assessments, countdowns, editable plans, task completion, and focus-session handoff
 - `study.html` — pasted-text/TXT/image import, source-preserving saved sets, scan handoff, and notebook actions
 - `csit-essentials.html` and `csit-module1.html` — existing CSIT course content, now connected to Study This and contextual tutor actions
@@ -42,9 +46,17 @@ Units 2–4 and the semester review are course-map placeholders only; StudySpace
 
 `assets/data/biology-questions.js` contains 36 original StudySpace questions across Sequences 1.1–1.5. They are labeled as outline-based StudySpace practice, not teacher questions.
 
+## Algebra 2 Chapter 1 architecture
+
+`assets/data/algebra2-chapter1.js` is the centralized model for Parent Functions and Transformations; Transformations of Linear and Absolute Value Functions; Modeling with Linear Functions; Solving Absolute Value Inequalities; Absolute Value Functions; and Piecewise Functions. It contains 34 measurable skills, 24 quick-review cards, reusable short lessons and worked examples, and 55 original randomized problem templates. Generated items carry a stable skill, difficulty, three progressive hints, explanation, and likely mistake category. They are StudySpace-created practice and are not claimed as teacher or textbook questions.
+
+`assets/algebra2-math.js` renders accessible, responsive SVG function graphs, scatter plots, number lines, and piecewise graphs. The six section pages use the same reusable UI and practice engine, while each section receives an appropriate interactive model: parent-family transformations, reciprocal horizontal scale, line-of-fit balancing, AND/OR number-line regions, vertex form, or piece selection.
+
+The practice engine does not expose the answer immediately. It reveals one hint at a time, checks the student's attempt, explains the likely misconception on an incorrect response, and can generate a similar problem from the same skill. Algebra context is also passed to StudySpace AI so hint, diagnosis, graph explanation, and navigation actions stay aligned with the current chapter, section, and skill.
+
 ## Progress and local data
 
-`assets/studyspace-core.js` owns versioned local state in `studyspace-app-v1`. Schema version 2 adds subject-safe Biology evidence and structured mistake records while migrating prior APHG flashcard and quiz history without clearing existing chatbot histories.
+`assets/studyspace-core.js` owns versioned local state in `studyspace-app-v1`. Schema version 3 adds subject-safe Algebra 2 evidence, mistake categories, reviewed status, and later-corrected status. Its migrations preserve prior APHG and Biology flashcard, quiz, planning, notebook, and chatbot history.
 
 Topic mastery needs at least three pieces of evidence. When enough exists, quiz performance contributes 70% and flashcard mastery contributes 30%; available components are normalized when only one evidence type exists. Scores are labeled Strong at 80%+, Developing at 60–79%, and Weak below 60%. Until then, the interface says `Not enough data yet`.
 
@@ -68,4 +80,4 @@ Serve the repository over HTTP rather than opening HTML files directly so the se
 npm test
 ```
 
-The test validates all 46 sequential APHG assignment entries, stable legacy IDs and the intentional duplicate, the original 46-question APHG bank, all five Biology sequences, 36 Biology questions, source availability rules, migration hooks, required pages, and local HTML asset links.
+The test validates all 46 sequential APHG assignment entries, stable legacy IDs and the intentional duplicate, the original 46-question APHG bank, all five Biology sequences, 36 Biology questions, all six Algebra 2 sections, randomized generator self-checks, 24 Algebra cards, source availability rules, migration hooks, required pages, and local HTML asset links.

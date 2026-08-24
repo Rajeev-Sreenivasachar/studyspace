@@ -13,6 +13,7 @@
   "shortcuts": [
     { "name": "APHG Unit 1", "url": "aphg.html" },
     { "name": "Biology 1 Honors", "url": "biology.html" },
+    { "name": "Algebra 2 Chapter 1", "url": "algebra2.html" },
     { "name": "Study This", "url": "study.html" },
     { "name": "Planner", "url": "planner.html" }
   ]

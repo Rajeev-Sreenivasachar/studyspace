@@ -8,11 +8,13 @@ await import(pathToFileURL(join(root, "assets/data/aphg-unit1.js")).href);
 await import(pathToFileURL(join(root, "assets/data/question-bank.js")).href);
 await import(pathToFileURL(join(root, "assets/data/biology-course.js")).href);
 await import(pathToFileURL(join(root, "assets/data/biology-questions.js")).href);
+await import(pathToFileURL(join(root, "assets/data/algebra2-chapter1.js")).href);
 
 const unit = globalThis.APHG_UNIT1;
 const questions = globalThis.APHG_QUESTIONS;
 const biology = globalThis.BIOLOGY_COURSE;
 const biologyQuestions = globalThis.BIOLOGY_QUESTIONS;
+const algebra = globalThis.ALGEBRA2_CHAPTER1;
 
 assert.equal(unit.topics.length, 7, "Unit 1 should expose Topics 1.1–1.7");
 assert.deepEqual(unit.topics.map(topic => topic.id), ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"]);
@@ -64,10 +66,34 @@ biology.materials.forEach(material => {
   assert.equal(material.originalAvailable, false);
 });
 
+assert.equal(algebra.sections.length, 6, "Algebra 2 Chapter 1 should provide Sections 1.1–1.6");
+assert.deepEqual(algebra.sections.map(section => section.id), ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"]);
+algebra.sections.forEach(section => {
+  for (const field of ["id", "title", "description", "skills", "lessons", "workedExamples", "visual"]) assert.ok(section[field], `Algebra ${section.id} missing ${field}`);
+  assert.ok(section.skills.length >= 5, `Algebra ${section.id} should expose at least five measurable skills`);
+  assert.ok(section.lessons.length >= 3, `Algebra ${section.id} should expose at least three short lessons`);
+  assert.ok(section.workedExamples.length >= 2, `Algebra ${section.id} should expose two worked examples`);
+  assert.ok(algebra.generatorTypes[section.id] >= 6, `Algebra ${section.id} needs at least six generated problem templates`);
+  for (let index = 0; index < 30; index += 1) {
+    const question = algebra.generate(section.id);
+    for (const field of ["id", "subject", "unit", "topic", "concept", "type", "difficulty", "prompt", "hints", "explanation", "mistakeCategory", "answer"]) assert.ok(question[field], `Generated Algebra ${section.id} question missing ${field}`);
+    assert.equal(question.subject, "algebra2");
+    assert.ok(question.hints.length >= 3, `${question.id} must provide three progressive hints`);
+    assert.equal(question.check(question.answer), true, `${question.id} must accept its own answer`);
+    if (question.inputType === "choice") assert.ok(question.choices.includes(question.answer), `${question.id} answer must appear in choices`);
+  }
+});
+assert.equal(algebra.flashcards.length, 24, "Algebra Chapter 1 should provide 24 quick-review cards");
+assert.equal(new Set(algebra.flashcards.map(card => card.id)).size, algebra.flashcards.length, "Algebra card IDs should be unique");
+algebra.flashcards.forEach(card => { for (const field of ["id", "topic", "term", "definition", "example", "concept", "subject"]) assert.ok(card[field], `${card.id} missing ${field}`); });
+
 const core = readFileSync(join(root, "assets/studyspace-core.js"), "utf8");
-assert.match(core, /version:\s*2/, "Shared storage schema should be version 2");
+assert.match(core, /version:\s*3/, "Shared storage schema should be version 3");
 assert.match(core, /function migrateV2/, "Shared storage should migrate existing version-1 progress");
+assert.match(core, /function migrateV3/, "Shared storage should migrate existing version-2 progress");
 assert.match(core, /mistakesFor/, "Shared storage should expose a mistake-review API");
+assert.match(core, /markMistakeReviewed/, "Shared storage should expose mistake review status");
+assert.match(core, /laterCorrected/, "Shared storage should preserve later-corrected status");
 
 const htmlFiles = readdirSync(root).filter(file => file.endsWith(".html"));
 for (const file of htmlFiles) {
@@ -85,8 +111,9 @@ const requiredPages = [
   "manifest.webmanifest", "sw.js", "offline.html", "planner.html", "study.html",
   "aphg-topic.html", "aphg-material.html", "biology.html", "biology-topic.html",
   "biology-flashcards.html", "biology-quiz.html", "biology-mistakes.html",
-  "biology-material.html", "biology-session.html"
+  "biology-material.html", "biology-session.html", "algebra2.html", "algebra2-section.html",
+  "algebra2-practice.html", "algebra2-flashcards.html", "algebra2-mistakes.html", "algebra2-session.html"
 ];
 for (const required of requiredPages) assert.ok(existsSync(join(root, required)), `${required} is required`);
 
-console.log(`Validated ${unit.vocabulary.length} APHG vocabulary entries, ${questions.length} APHG questions, ${biology.unit1.sequences.length} Biology sequences, ${biologyQuestions.length} Biology questions, and ${htmlFiles.length} HTML pages.`);
+console.log(`Validated ${unit.vocabulary.length} APHG vocabulary entries, ${questions.length} APHG questions, ${biology.unit1.sequences.length} Biology sequences, ${biologyQuestions.length} Biology questions, ${algebra.sections.length} Algebra sections, ${algebra.flashcards.length} Algebra cards, and ${htmlFiles.length} HTML pages.`);
