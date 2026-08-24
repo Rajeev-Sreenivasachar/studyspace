@@ -50,7 +50,11 @@ The practice bank in `assets/data/question-bank.js` contains 46 structured Study
 
 `assets/data/biology-course.js` is the centralized Biology course model. Unit 1 contains five complete learning sequences: Properties of Water; Macromolecules & Enzymes; Cell Theory & Origin of Life; Cell Types, Organelles, & Membrane Transport; and Photosynthesis, Cellular Respiration, & Cell Energetics. Each follows a Pre-Class → Engage → Explore → Explain → Elaborate → Evaluate → Mastery flow and supplies structured targets, visuals, vocabulary, practice, CER work, and AI context.
 
-Units 2–4 and the semester review are course-map placeholders only; StudySpace does not claim that their source content has been imported. The supplied Biology material was a course outline rather than original teacher files, so the per-sequence source records remain `file-needed` and all source-dependent actions are disabled. Future authorized originals belong under `assets/materials/biology/unit1/<sequence>/`, after which the matching material record can be activated without rebuilding the course pages.
+The known Biology Unit 1 sequence keeps its detailed 5E experience. The complete course runtime now provides original, standards-backed instruction, examples, vocabulary, practice, flashcards, quizzes, and mastery for the remaining Biology framework. Those lessons are not presented as teacher notes. The supplied Biology material was a course outline rather than original teacher files, so per-sequence class-source records remain `file-needed` and source-dependent actions stay disabled. Future authorized originals belong under `assets/materials/biology/unit1/<sequence>/`, after which the matching material record can be activated without rebuilding the course pages.
+
+## Complete-course runtime
+
+`assets/data/full-course-content.js` turns every verified framework topic into a structured lesson with learning targets, multi-part instruction, a worked application, misconception coaching, a visual reasoning model, five vocabulary cards, four levels of practice, and four original mastery-check questions. `subject.html`, `course-unit.html`, `course-lesson.html`, `course-flashcards.html`, `course-quiz.html`, and `course-mistakes.html` provide the shared interface for all eight courses while preserving the richer class-specific APHG, Biology, Algebra 2, and CSIT Module 1 pages.
 
 `assets/data/biology-questions.js` contains 36 original StudySpace questions across Sequences 1.1–1.5. They are labeled as outline-based StudySpace practice, not teacher questions.
 

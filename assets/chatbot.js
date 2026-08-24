@@ -13,15 +13,19 @@
     {label:"Biology 1.1 Properties of Water",path:"biology-topic.html?t=1.1"},
     {label:"Algebra 2 Chapter 1 hub",path:"algebra2.html"},{label:"Algebra 2 Chapter 1 practice",path:"algebra2-practice.html"},
     {label:"Algebra 2 flashcards",path:"algebra2-flashcards.html"},{label:"Algebra 2 My Mistakes",path:"algebra2-mistakes.html"},
-    {label:"Algebra 2 Section 1.1",path:"algebra2-section.html?s=1.1"}
+    {label:"Algebra 2 Section 1.1",path:"algebra2-section.html?s=1.1"},
+    {label:"AP Human Geography — all units",path:"subject.html?s=aphg"},{label:"Algebra 2 — full course",path:"subject.html?s=algebra2"},
+    {label:"Biology — full course",path:"subject.html?s=biology"},{label:"CSIT Foundations — full course",path:"subject.html?s=csit-foundations"},
+    {label:"CSIT Essentials — full course",path:"subject.html?s=csit-essentials"},{label:"English 1 Honors — full course",path:"subject.html?s=english"},
+    {label:"Orchestra 1 — full course",path:"subject.html?s=orchestra"},{label:"AICE Thinking Skills — full course",path:"subject.html?s=thinking-skills"}
   ];
   function scopeForPage(){
-    const path=location.pathname.toLowerCase(),query=new URLSearchParams(location.search),subject=query.get("s");
+    const path=location.pathname.toLowerCase(),query=new URLSearchParams(location.search),subject=query.get("c")||query.get("s")||document.body.dataset.subject;
     if(path.includes("aphg"))return {key:"aphg",label:"AP Human Geography"};
     if(path.includes("biology"))return {key:"biology",label:"Biology 1 Honors"};
     if(path.includes("algebra2"))return {key:"algebra2",label:"Algebra 2 Honors"};
     if(path.includes("csit"))return {key:"csit",label:"CSIT Essentials"};
-    if(subject)return {key:`subject-${subject}`,label:subject.replaceAll("-"," ").replace(/\b\w/g,x=>x.toUpperCase())};
+    if(subject)return {key:subject,label:document.body.dataset.course||subject.replaceAll("-"," ").replace(/\b\w/g,x=>x.toUpperCase())};
     return {key:"general",label:"General StudySpace"};
   }
   const scope=scopeForPage(),storageKey=PREFIX+scope.key;

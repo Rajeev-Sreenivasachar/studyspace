@@ -1,4 +1,5 @@
 const SUBJECTS = {
+  aphg: ["AP Human Geography", "🌍"],
   algebra2: ["Algebra 2 Honors", "➗"],
   biology: ["Biology 1 Honors", "🧬"],
   english: ["English 1 Honors", "📖"],
@@ -63,7 +64,7 @@ function syncFavicon() {
 function loadScript(src, done = () => {}) {
   const existing = document.querySelector(`script[src="${src}"]`);
   if (existing) {
-    if (existing.dataset.loaded === "true" || src.includes("aphg-unit1") && globalThis.APHG_UNIT1 || src.includes("studyspace-core") && globalThis.StudySpace) done();
+    if (existing.dataset.loaded === "true" || src.includes("course-frameworks") && globalThis.STUDYSPACE_COURSES || src.includes("full-course-content") && globalThis.STUDYSPACE_LEARNING || src.includes("aphg-unit1") && globalThis.APHG_UNIT1 || src.includes("biology-course") && globalThis.BIOLOGY_COURSE || src.includes("algebra2-chapter1") && globalThis.ALGEBRA2_CHAPTER1 || src.includes("studyspace-core") && globalThis.StudySpace) done();
     else existing.addEventListener("load", done, { once: true });
     return;
   }
@@ -74,7 +75,7 @@ function loadScript(src, done = () => {}) {
 }
 
 function loadPlatform(done = () => {}) {
-  loadScript("assets/data/course-frameworks.js?v=2", () => loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/data/algebra2-chapter1.js", () => loadScript("assets/studyspace-core.js", done)))));
+  loadScript("assets/data/course-frameworks.js?v=3", () => loadScript("assets/data/full-course-content.js?v=2", () => loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/data/algebra2-chapter1.js", () => loadScript("assets/studyspace-core.js", done))))));
 }
 
 function renderSmartDashboard() {
@@ -133,10 +134,12 @@ function upgradeHomeSearch() {
   const results = document.querySelector("#searchResults");
   if (!input || !results || !globalThis.APHG_UNIT1) return;
   const unit = APHG_UNIT1;
-  const frameworkPages = { aphg: "aphg.html", algebra2: "algebra2.html", biology: "biology.html" };
   const frameworkIndex = Object.values(globalThis.STUDYSPACE_COURSES?.courses || {}).flatMap(course => course.units.flatMap(courseUnit => [
-    { title: `${course.title}: ${courseUnit.title}`, desc: `${courseUnit.summary} ${courseUnit.topics.map(topic => topic.title).join(" ")}`, href: frameworkPages[course.id] || `subject.html?s=${course.id}`, kind: "Official course map" },
-    ...courseUnit.topics.map(topic => ({ title: `${course.title} ${topic.id}: ${topic.title}`, desc: topic.summary, href: frameworkPages[course.id] || `subject.html?s=${course.id}`, kind: "Framework topic" }))
+    { title: `${course.title}: ${courseUnit.title}`, desc: `${courseUnit.summary} ${courseUnit.topics.map(topic => topic.title).join(" ")}`, href: `course-unit.html?c=${course.id}&u=${encodeURIComponent(courseUnit.id)}`, kind: "Complete unit" },
+    ...courseUnit.topics.map(topic => {
+      const lesson = globalThis.STUDYSPACE_LEARNING?.lesson(course.id, courseUnit.id, topic.id);
+      return { title: `${course.title} ${topic.id}: ${topic.title}`, desc: `${topic.summary} ${(lesson?.vocabulary || []).map(item => `${item.term} ${item.definition}`).join(" ")}`, href: `course-lesson.html?c=${course.id}&u=${encodeURIComponent(courseUnit.id)}&l=${encodeURIComponent(topic.id)}`, kind: "Complete lesson" };
+    })
   ]));
   const index = [
     ...frameworkIndex,

@@ -10,6 +10,7 @@ await import(pathToFileURL(join(root, "assets/data/biology-course.js")).href);
 await import(pathToFileURL(join(root, "assets/data/biology-questions.js")).href);
 await import(pathToFileURL(join(root, "assets/data/algebra2-chapter1.js")).href);
 await import(pathToFileURL(join(root, "assets/data/course-frameworks.js")).href);
+await import(pathToFileURL(join(root, "assets/data/full-course-content.js")).href);
 
 const unit = globalThis.APHG_UNIT1;
 const questions = globalThis.APHG_QUESTIONS;
@@ -17,6 +18,7 @@ const biology = globalThis.BIOLOGY_COURSE;
 const biologyQuestions = globalThis.BIOLOGY_QUESTIONS;
 const algebra = globalThis.ALGEBRA2_CHAPTER1;
 const frameworks = globalThis.STUDYSPACE_COURSES;
+const learning = globalThis.STUDYSPACE_LEARNING;
 
 assert.equal(unit.topics.length, 7, "Unit 1 should expose Topics 1.1–1.7");
 assert.deepEqual(unit.topics.map(topic => topic.id), ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"]);
@@ -61,7 +63,7 @@ biologyQuestions.forEach(question => {
   assert.ok(question.choices.includes(question.answer), `${question.id} answer must appear in choices`);
   assert.ok(biology.unit1.sequence(question.topic), `${question.id} has invalid sequence ${question.topic}`);
 });
-biology.units.slice(1).forEach(laterUnit => assert.equal(laterUnit.status, "not-imported", `${laterUnit.title} must be an honest placeholder`));
+biology.units.slice(1).forEach(laterUnit => assert.equal(laterUnit.status, "class-source-needed", `${laterUnit.title} must keep missing class-specific source status explicit`));
 biology.materials.forEach(material => {
   assert.equal(material.status, "file-needed");
   assert.equal(material.repositoryPath, null);
@@ -117,6 +119,31 @@ for (const course of Object.values(frameworks.courses)) {
 }
 for (const courseId of ["aphg", "algebra2", "biology", "csit-essentials"]) assert.ok(frameworks.course(courseId).units.some(item => item.classSequence), `${courseId} must preserve its known class sequence`);
 
+let completeLessonCount = 0;
+for (const courseId of expectedCourses) {
+  const complete = learning.course(courseId);
+  assert.ok(complete, `${courseId} needs complete learning content`);
+  assert.equal(complete.units.length, frameworks.course(courseId).units.length, `${courseId} learning units must match the framework`);
+  complete.units.forEach(courseUnit => {
+    assert.equal(courseUnit.lessons.length, courseUnit.topics.length, `${courseId} ${courseUnit.id} needs one real lesson per topic`);
+    courseUnit.lessons.forEach(lesson => {
+      completeLessonCount += 1;
+      assert.ok(lesson.overview.length > 100, `${lesson.id} needs a substantive overview`);
+      assert.ok(lesson.objectives.length >= 3, `${lesson.id} needs learning objectives`);
+      assert.ok(lesson.sections.length >= 3, `${lesson.id} needs multiple teaching sections`);
+      assert.ok(lesson.vocabulary.length >= 5, `${lesson.id} needs usable flashcards`);
+      assert.ok(lesson.practice.length >= 4, `${lesson.id} needs progressive practice`);
+      assert.ok(lesson.questions.length >= 4, `${lesson.id} needs a mastery check bank`);
+      assert.ok(lesson.example && lesson.misconception && lesson.visual, `${lesson.id} needs an example, misconception, and visual model`);
+      lesson.questions.forEach(question => {
+        assert.equal(question.choices.length, 4, `${question.id} needs four choices`);
+        assert.ok(question.answer >= 0 && question.answer < question.choices.length, `${question.id} answer index is invalid`);
+      });
+    });
+  });
+}
+assert.ok(completeLessonCount >= 280, "The full course catalog should expose at least 280 complete lessons");
+
 const core = readFileSync(join(root, "assets/studyspace-core.js"), "utf8");
 assert.match(core, /version:\s*3/, "Shared storage schema should be version 3");
 assert.match(core, /function migrateV2/, "Shared storage should migrate existing version-1 progress");
@@ -142,8 +169,9 @@ const requiredPages = [
   "aphg-topic.html", "aphg-material.html", "biology.html", "biology-topic.html",
   "biology-flashcards.html", "biology-quiz.html", "biology-mistakes.html",
   "biology-material.html", "biology-session.html", "algebra2.html", "algebra2-section.html",
-  "algebra2-practice.html", "algebra2-flashcards.html", "algebra2-mistakes.html", "algebra2-session.html"
+  "algebra2-practice.html", "algebra2-flashcards.html", "algebra2-mistakes.html", "algebra2-session.html",
+  "course-unit.html", "course-lesson.html", "course-flashcards.html", "course-quiz.html", "course-mistakes.html"
 ];
 for (const required of requiredPages) assert.ok(existsSync(join(root, required)), `${required} is required`);
 
-console.log(`Validated ${expectedCourses.length} full-year course records, ${unit.vocabulary.length} APHG vocabulary entries, ${questions.length} APHG questions, ${biology.unit1.sequences.length} Biology sequences, ${biologyQuestions.length} Biology questions, ${algebra.sections.length} Algebra sections, ${algebra.flashcards.length} Algebra cards, and ${htmlFiles.length} HTML pages.`);
+console.log(`Validated ${expectedCourses.length} complete courses, ${completeLessonCount} reusable lessons, ${unit.vocabulary.length} APHG vocabulary entries, ${questions.length} APHG questions, ${biology.unit1.sequences.length} Biology sequences, ${biologyQuestions.length} Biology questions, ${algebra.sections.length} Algebra sections, ${algebra.flashcards.length} Algebra cards, and ${htmlFiles.length} HTML pages.`);

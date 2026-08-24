@@ -284,17 +284,17 @@
 
   const units = [
     { id: "1", title: "Unit 1", status: "available", sequences: sequences.map(item => ({ id: item.id, title: item.title, status: "available" })) },
-    { id: "2", title: "Unit 2", status: "not-imported", sequences: [
+    { id: "2", title: "Unit 2", status: "class-source-needed", sequences: [
       { id: "2.1", title: "DNA & DNA Replication, Protein Synthesis, Mutations, and Biotechnology" },
       { id: "2.2", title: "The Cell Cycle & Cancer" },
       { id: "2.3", title: "Asexual vs Sexual Reproduction including Meiosis" },
       { id: "2.4", title: "Human/Plant Reproduction & Development" }
     ] },
-    { id: "semester", title: "Semester Exam Review", status: "not-imported", sequences: [{ id: "review-1-2", title: "Units 1–2" }] },
-    { id: "3", title: "Unit 3", status: "not-imported", sequences: [
+    { id: "semester", title: "Semester Exam Review", status: "class-source-needed", sequences: [{ id: "review-1-2", title: "Units 1–2" }] },
+    { id: "3", title: "Unit 3", status: "class-source-needed", sequences: [
       { id: "3.1", title: "Mendelian Genetics" }, { id: "3.2", title: "Mechanisms of Evolution" }, { id: "3.3", title: "Evidence of Evolution" }, { id: "3.4", title: "Classification" }, { id: "3.5", title: "The Human Body" }
     ] },
-    { id: "4", title: "Unit 4", status: "not-imported", sequences: [{ id: "4.1-4.3", title: "Ecosystems, Food Webs, & Human Impact" }] }
+    { id: "4", title: "Unit 4", status: "class-source-needed", sequences: [{ id: "4.1-4.3", title: "Ecosystems, Food Webs, & Human Impact" }] }
   ];
 
   const vocabulary = sequences.flatMap(sequence => sequence.vocabulary.map(term => ({ ...term, topic: sequence.id, sequence: sequence.id })));
