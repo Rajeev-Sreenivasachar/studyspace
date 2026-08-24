@@ -9,12 +9,14 @@ await import(pathToFileURL(join(root, "assets/data/question-bank.js")).href);
 await import(pathToFileURL(join(root, "assets/data/biology-course.js")).href);
 await import(pathToFileURL(join(root, "assets/data/biology-questions.js")).href);
 await import(pathToFileURL(join(root, "assets/data/algebra2-chapter1.js")).href);
+await import(pathToFileURL(join(root, "assets/data/course-frameworks.js")).href);
 
 const unit = globalThis.APHG_UNIT1;
 const questions = globalThis.APHG_QUESTIONS;
 const biology = globalThis.BIOLOGY_COURSE;
 const biologyQuestions = globalThis.BIOLOGY_QUESTIONS;
 const algebra = globalThis.ALGEBRA2_CHAPTER1;
+const frameworks = globalThis.STUDYSPACE_COURSES;
 
 assert.equal(unit.topics.length, 7, "Unit 1 should expose Topics 1.1–1.7");
 assert.deepEqual(unit.topics.map(topic => topic.id), ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"]);
@@ -87,6 +89,34 @@ assert.equal(algebra.flashcards.length, 24, "Algebra Chapter 1 should provide 24
 assert.equal(new Set(algebra.flashcards.map(card => card.id)).size, algebra.flashcards.length, "Algebra card IDs should be unique");
 algebra.flashcards.forEach(card => { for (const field of ["id", "topic", "term", "definition", "example", "concept", "subject"]) assert.ok(card[field], `${card.id} missing ${field}`); });
 
+const expectedCourses = ["aphg", "algebra2", "biology", "thinking-skills", "csit-foundations", "csit-essentials", "english", "orchestra"];
+assert.deepEqual(Object.keys(frameworks.courses).sort(), expectedCourses.sort(), "Every current StudySpace course needs a framework record");
+assert.equal(frameworks.course("aphg").units.length, 7, "APHG must expose all seven official units");
+frameworks.course("aphg").units.forEach(courseUnit => {
+  assert.ok(courseUnit.requiredKnowledge.length >= 3, `APHG Unit ${courseUnit.id} needs required-knowledge checkpoints`);
+  assert.equal(courseUnit.practice.type, "original-ap-style", `APHG Unit ${courseUnit.id} needs original AP-style practice`);
+  assert.ok(courseUnit.practice.choices.includes(courseUnit.practice.answer), `APHG Unit ${courseUnit.id} practice answer must be a choice`);
+});
+assert.equal(frameworks.course("csit-essentials").units.length, 14, "CSIT Essentials must preserve the Cisco 14-module structure");
+assert.equal(frameworks.course("thinking-skills").courseCode, "9694");
+assert.equal(frameworks.course("csit-foundations").frameworkStatus, "needs-class-identification", "Ambiguous local course names must not receive invented standards");
+for (const course of Object.values(frameworks.courses)) {
+  for (const field of ["id", "title", "frameworkStatus", "frameworkSourceId", "summary", "sources", "skills", "units"]) assert.ok(course[field], `${course.id} missing ${field}`);
+  const priorities = Object.fromEntries(course.sources.map(source => [source.type, source.priority]));
+  assert.equal(priorities["official-framework"], 1, `${course.id} official source must have first priority`);
+  assert.equal(priorities["teacher-class-material"], 2, `${course.id} class source must have second priority`);
+  assert.equal(priorities["studyspace-generated"], 3, `${course.id} StudySpace source must have third priority`);
+  course.sources.forEach(source => {
+    assert.ok(!String(source.url || "").match(/^[A-Z]:\\|AppData|Temp/i), `${course.id} must not expose temporary local paths`);
+  });
+  course.units.forEach(courseUnit => {
+    assert.ok(courseUnit.topics.length, `${course.id} ${courseUnit.id} needs topics or an explicit information request`);
+    courseUnit.sourceIds.forEach(sourceId => assert.ok(frameworks.findSource(course, sourceId), `${course.id} ${courseUnit.id} has unknown source ${sourceId}`));
+    courseUnit.topics.forEach(courseTopic => courseTopic.sourceIds.forEach(sourceId => assert.ok(frameworks.findSource(course, sourceId), `${course.id} ${courseTopic.id} has unknown source ${sourceId}`)));
+  });
+}
+for (const courseId of ["aphg", "algebra2", "biology", "csit-essentials"]) assert.ok(frameworks.course(courseId).units.some(item => item.classSequence), `${courseId} must preserve its known class sequence`);
+
 const core = readFileSync(join(root, "assets/studyspace-core.js"), "utf8");
 assert.match(core, /version:\s*3/, "Shared storage schema should be version 3");
 assert.match(core, /function migrateV2/, "Shared storage should migrate existing version-1 progress");
@@ -116,4 +146,4 @@ const requiredPages = [
 ];
 for (const required of requiredPages) assert.ok(existsSync(join(root, required)), `${required} is required`);
 
-console.log(`Validated ${unit.vocabulary.length} APHG vocabulary entries, ${questions.length} APHG questions, ${biology.unit1.sequences.length} Biology sequences, ${biologyQuestions.length} Biology questions, ${algebra.sections.length} Algebra sections, ${algebra.flashcards.length} Algebra cards, and ${htmlFiles.length} HTML pages.`);
+console.log(`Validated ${expectedCourses.length} full-year course records, ${unit.vocabulary.length} APHG vocabulary entries, ${questions.length} APHG questions, ${biology.unit1.sequences.length} Biology sequences, ${biologyQuestions.length} Biology questions, ${algebra.sections.length} Algebra sections, ${algebra.flashcards.length} Algebra cards, and ${htmlFiles.length} HTML pages.`);

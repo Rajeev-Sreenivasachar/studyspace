@@ -67,13 +67,13 @@
   <script>
     const list = [
       { n: "AP Human Geography", i: "🌍", d: "Explore space, place, culture, and patterns.", h: "aphg.html", ready: true },
-      { n: "Algebra 2 Honors", i: "➗", d: "Build confidence with functions and equations.", h: "algebra2.html" },
-      { n: "CSIT Foundations", i: "💻", d: "Core computing and technology concepts.", h: "subject.html?s=csit-foundations" },
-      { n: "CSIT Essentials", i: "🖥️", d: "Practical digital tools and technical skills.", h: "subject.html?s=csit-essentials" },
-      { n: "Orchestra 1", i: "🎻", d: "Music theory, technique, and performance.", h: "subject.html?s=orchestra" },
+      { n: "Algebra 2 Honors", i: "➗", d: "Build confidence with functions and equations.", h: "algebra2.html", ready: true },
+      { n: "CSIT Foundations", i: "💻", d: "Core computing and technology concepts.", h: "subject.html?s=csit-foundations", ready: true },
+      { n: "CSIT Essentials", i: "🖥️", d: "Practical digital tools and technical skills.", h: "subject.html?s=csit-essentials", ready: true },
+      { n: "Orchestra 1", i: "🎻", d: "Music theory, technique, and performance.", h: "subject.html?s=orchestra", ready: true },
       { n: "Biology 1 Honors", i: "🧬", d: "Study living systems from cells to ecosystems.", h: "biology.html", ready: true },
-      { n: "English 1 Honors", i: "📖", d: "Read closely and write with clarity.", h: "subject.html?s=english" },
-      { n: "AICE Thinking Skills", i: "💡", d: "Reason, evaluate, and solve complex problems.", h: "subject.html?s=thinking-skills" }
+      { n: "English 1 Honors", i: "📖", d: "Read closely and write with clarity.", h: "subject.html?s=english", ready: true },
+      { n: "AICE Thinking Skills", i: "💡", d: "Reason, evaluate, and solve complex problems.", h: "subject.html?s=thinking-skills", ready: true }
     ];
     document.querySelector("#subjectCards").innerHTML = list.map(item => `<a class="card" href="${item.h}"><div class="icon">${item.i}</div><h3>${item.n}</h3><p>${item.d}</p><span class="link">${item.ready ? "Start studying" : "View subject"} →</span></a>`).join("");
 

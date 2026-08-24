@@ -1,6 +1,14 @@
 # StudySpace
 
-StudySpace is a responsive, installable study workspace built with plain HTML, CSS, and JavaScript. It connects source-aware notes, adaptive flashcards, practice quizzes, mastery, planning, imports, focus sessions, and one Gemini-powered tutor.
+StudySpace is a responsive, installable study workspace built with plain HTML, CSS, and JavaScript. It connects official-framework course maps, source-aware notes, adaptive flashcards, practice quizzes, mastery, planning, imports, focus sessions, and one Gemini-powered tutor.
+
+## Full-year framework and provenance model
+
+`assets/data/course-frameworks.js` is the centralized full-year catalog for all eight current courses. Official public frameworks define what belongs in each course; teacher/class materials can override the classroom order; original StudySpace material supplies copyright-safe teaching and practice. Each source has a stable ID, provenance type, priority, authority, version, scope, and official URL when one exists. Each unit and topic lists its source IDs.
+
+The reusable `assets/course-framework-ui.js` renders expandable course maps and a visible source registry. AP Human Geography, Algebra 2 Honors, and Biology 1 Honors keep their detailed class-specific Unit 1 pages and add the full-year map underneath. AICE Thinking Skills, English 1 Honors, Orchestra 1, CSIT Essentials, and CSIT Foundations use the generic subject hub. CSIT Foundations is intentionally marked as needing its exact class course code or syllabus because the local title does not uniquely identify one Florida CTE framework.
+
+The framework catalog uses current official public sources checked on August 24, 2026: College Board's AP Human Geography CED, CPALMS/FDOE course and standards records for Algebra 2 Honors (#1200340), Biology 1 Honors (#2000320), English Honors 1 (#1001320), and Orchestra 1 (#1302360), Cambridge Thinking Skills 9694 for examinations in 2026–2027, Cisco IT Essentials Version 8, and the Florida 2026–2027 Information Technology CTE framework directory. It stores links and summaries only; no paid textbook chapters or copyrighted class materials are copied.
 
 ## Main student flows
 
@@ -11,7 +19,7 @@ StudySpace is a responsive, installable study workspace built with plain HTML, C
 - `aphg-flashcards.html` — topic filters, adaptive modes, persistent Know It/Still Learning state, swipe, and keyboard controls
 - `aphg-quiz.html` — 10/20/30-question, topic, weak-topic, and mistake-focused practice with full answer review
 - `aphg-review.html` — searchable review of the verified numbered vocabulary entries
-- `biology.html` — Biology 1 Honors course hub with Unit 1 mastery, source slots, and honest later-unit placeholders
+- `biology.html` — Biology 1 Honors course hub with Unit 1 mastery, source slots, and a standards-backed full-year map
 - `biology-topic.html?s=1.1` — reusable 5E sequence page for Biology Unit 1 Sequences 1.1–1.5
 - `biology-flashcards.html`, `biology-quiz.html`, and `biology-mistakes.html` — persistent adaptive practice and mistake review
 - `biology-session.html` — a guided session that starts with the weakest measured Biology sequence
@@ -80,4 +88,4 @@ Serve the repository over HTTP rather than opening HTML files directly so the se
 npm test
 ```
 
-The test validates all 46 sequential APHG assignment entries, stable legacy IDs and the intentional duplicate, the original 46-question APHG bank, all five Biology sequences, 36 Biology questions, all six Algebra 2 sections, randomized generator self-checks, 24 Algebra cards, source availability rules, migration hooks, required pages, and local HTML asset links.
+The test validates all eight course framework records, source priority and provenance, the seven APHG units, the 14 Cisco IT Essentials modules, honest ambiguous-course handling, all 46 sequential APHG assignment entries, the original 46-question APHG bank, all five Biology sequences, 36 Biology questions, all six Algebra 2 sections, randomized generator self-checks, 24 Algebra cards, source availability rules, migration hooks, required pages, and local HTML asset links.

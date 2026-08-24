@@ -74,7 +74,7 @@ function loadScript(src, done = () => {}) {
 }
 
 function loadPlatform(done = () => {}) {
-  loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/data/algebra2-chapter1.js", () => loadScript("assets/studyspace-core.js", done))));
+  loadScript("assets/data/course-frameworks.js?v=2", () => loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/data/algebra2-chapter1.js", () => loadScript("assets/studyspace-core.js", done)))));
 }
 
 function renderSmartDashboard() {
@@ -133,7 +133,13 @@ function upgradeHomeSearch() {
   const results = document.querySelector("#searchResults");
   if (!input || !results || !globalThis.APHG_UNIT1) return;
   const unit = APHG_UNIT1;
+  const frameworkPages = { aphg: "aphg.html", algebra2: "algebra2.html", biology: "biology.html" };
+  const frameworkIndex = Object.values(globalThis.STUDYSPACE_COURSES?.courses || {}).flatMap(course => course.units.flatMap(courseUnit => [
+    { title: `${course.title}: ${courseUnit.title}`, desc: `${courseUnit.summary} ${courseUnit.topics.map(topic => topic.title).join(" ")}`, href: frameworkPages[course.id] || `subject.html?s=${course.id}`, kind: "Official course map" },
+    ...courseUnit.topics.map(topic => ({ title: `${course.title} ${topic.id}: ${topic.title}`, desc: topic.summary, href: frameworkPages[course.id] || `subject.html?s=${course.id}`, kind: "Framework topic" }))
+  ]));
   const index = [
+    ...frameworkIndex,
     ...unit.topics.map(topic => ({ title: `Topic ${topic.id}: ${topic.title}`, desc: topic.essentials.join(" "), href: `aphg-topic.html?t=${topic.id}`, kind: "APHG topic" })),
     ...unit.vocabulary.map(term => ({ title: term.term, desc: `${term.definition} ${term.example}`, href: `aphg-review.html?term=${term.id}`, kind: `Vocabulary · Topic ${term.topic}` })),
     ...(globalThis.BIOLOGY_COURSE?.sequences || []).map(sequence => ({ title: `Biology ${sequence.id}: ${sequence.title}`, desc: `${sequence.summary} ${sequence.masteryTags.join(" ")}`, href: `biology-topic.html?t=${sequence.id}`, kind: "Biology sequence" })),
