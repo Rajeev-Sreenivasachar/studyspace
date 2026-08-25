@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   const escape = value => String(value ?? "").replace(/[&<>"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
-  const sourceBadge = source => `<span class="source-chip ${escape(source.type)}">${source.type === "official-framework" ? "Official" : source.type === "teacher-class-material" ? "Class" : "StudySpace"}</span>`;
+  const sourceBadge = source => `<span class="source-chip ${escape(source.type)}">${source.type === "school-catalog" ? "School offering" : source.type === "official-framework" ? "Official" : source.type === "teacher-class-material" ? "Class" : "StudySpace"}</span>`;
   const detailed = (course, item) => course.id === "aphg" && item.id === "1" ? { unit: "aphg.html", lesson: id => `aphg-topic.html?t=${encodeURIComponent(id)}`, quiz: "aphg-quiz.html", cards: "aphg-flashcards.html" } : course.id === "algebra2" && item.id === "class-1" ? { unit: "algebra2.html", lesson: id => `algebra2-section.html?s=${encodeURIComponent(id)}`, quiz: "algebra2-practice.html?mode=mixed", cards: "algebra2-flashcards.html" } : course.id === "biology" && item.id === "1" ? { unit: "biology.html", lesson: id => `biology-topic.html?t=${encodeURIComponent(id)}`, quiz: "biology-quiz.html", cards: "biology-flashcards.html" } : course.id === "csit-essentials" && item.id === "1" ? { unit: "csit-module1.html", lesson: () => "csit-module1.html", quiz: "csit-module1-quiz.html", cards: "csit-module1-flashcards.html" } : null;
 
   function renderSources(course) {

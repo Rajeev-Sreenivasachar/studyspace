@@ -6,7 +6,7 @@
   <meta name="description" content="StudySpace brings student-friendly flashcards, quizzes, reviews, and focus tools together.">
   <title>StudySpace | Your Study Home Base</title>
   <link rel="icon" href="assets/favicon.png">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
   <div class="wrap">
@@ -24,7 +24,7 @@
           </div>
           <div class="actions">
             <a class="btn primary" href="aphg-flashcards.html">Start studying</a>
-            <a class="btn" href="#subjects">Explore subjects</a>
+            <a class="btn" href="course-library.html">Browse Course Library</a>
           </div>
         </div>
         <div class="hero-card">
@@ -38,7 +38,7 @@
       </section>
 
       <section id="subjects">
-        <div class="section-head"><div><h2>Your subjects</h2><p>Choose a class and pick up where you left off.</p></div><span class="muted">8 subjects</span></div>
+        <div class="section-head"><div><h2>My Courses</h2><p>Your chosen dashboard. Removing a course only hides it here; saved mastery and history stay intact.</p></div><div class="actions"><span class="muted" id="myCourseCount">8 courses</span><a class="btn small" href="course-library.html">Manage courses</a></div></div>
         <div class="cards" id="subjectCards"></div>
       </section>
 
@@ -63,39 +63,13 @@
     </main>
     <div data-footer></div>
   </div>
-  <script src="app.js"></script>
+  <script src="assets/data/course-frameworks.js?v=3"></script>
+  <script src="assets/data/middleton-course-library.js?v=1"></script>
+  <script src="assets/data/full-course-content.js?v=4"></script>
+  <script src="assets/studyspace-core.js"></script>
+  <script src="app.js?v=13"></script>
+  <script src="assets/course-library.js?v=2"></script>
   <script>
-    const list = [
-      { n: "AP Human Geography", i: "🌍", d: "Explore space, place, culture, and patterns.", h: "aphg.html", ready: true },
-      { n: "Algebra 2 Honors", i: "➗", d: "Build confidence with functions and equations.", h: "algebra2.html", ready: true },
-      { n: "CSIT Foundations", i: "💻", d: "Core computing and technology concepts.", h: "subject.html?s=csit-foundations", ready: true },
-      { n: "CSIT Essentials", i: "🖥️", d: "Practical digital tools and technical skills.", h: "subject.html?s=csit-essentials", ready: true },
-      { n: "Orchestra 1", i: "🎻", d: "Music theory, technique, and performance.", h: "subject.html?s=orchestra", ready: true },
-      { n: "Biology 1 Honors", i: "🧬", d: "Study living systems from cells to ecosystems.", h: "biology.html", ready: true },
-      { n: "English 1 Honors", i: "📖", d: "Read closely and write with clarity.", h: "subject.html?s=english", ready: true },
-      { n: "AICE Thinking Skills", i: "💡", d: "Reason, evaluate, and solve complex problems.", h: "subject.html?s=thinking-skills", ready: true }
-    ];
-    document.querySelector("#subjectCards").innerHTML = list.map(item => `<a class="card" href="${item.h}"><div class="icon">${item.i}</div><h3>${item.n}</h3><p>${item.d}</p><span class="link">${item.ready ? "Start studying" : "View subject"} →</span></a>`).join("");
-
-    const search = document.querySelector("#studySearch");
-    const results = document.querySelector("#searchResults");
-    const resources = [
-      ...list.map(item => ({ title: item.n, desc: item.d, href: item.h })),
-      { title: "APHG Flashcards", desc: "46 Unit 1 vocabulary cards", href: "aphg-flashcards.html" },
-      { title: "APHG Quick Review", desc: "Definitions and examples in one grid", href: "aphg-review.html" },
-      { title: "APHG Practice Quiz", desc: "Application and vocabulary practice", href: "aphg-quiz.html" },
-      { title: "Biology Unit 1", desc: "Five learning sequences, cards, quizzes, and mastery", href: "biology.html" },
-      { title: "Focus Timer", desc: "25-minute study session", href: "#focus" }
-    ];
-    search.oninput = () => {
-      const query = search.value.trim().toLowerCase();
-      if (!query) { results.hidden = true; return; }
-      const hits = resources.filter(item => `${item.title} ${item.desc}`.toLowerCase().includes(query));
-      results.innerHTML = (hits.length ? hits : [{ title: "No matches yet", desc: "Try AP Human Geography, quiz, or biology", href: "#subjects" }]).map(item => `<a class="search-item" href="${item.href}"><strong>${item.title}</strong><span>${item.desc}</span></a>`).join("");
-      results.hidden = false;
-    };
-    document.addEventListener("click", event => { if (!event.target.closest(".search-wrap")) results.hidden = true; });
-
     let remaining = 1500;
     let timerId;
     const timer = document.querySelector("#timer");

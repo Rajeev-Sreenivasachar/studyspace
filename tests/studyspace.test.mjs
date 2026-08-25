@@ -10,6 +10,7 @@ await import(pathToFileURL(join(root, "assets/data/biology-course.js")).href);
 await import(pathToFileURL(join(root, "assets/data/biology-questions.js")).href);
 await import(pathToFileURL(join(root, "assets/data/algebra2-chapter1.js")).href);
 await import(pathToFileURL(join(root, "assets/data/course-frameworks.js")).href);
+await import(pathToFileURL(join(root, "assets/data/middleton-course-library.js")).href);
 await import(pathToFileURL(join(root, "assets/data/full-course-content.js")).href);
 
 const unit = globalThis.APHG_UNIT1;
@@ -19,6 +20,7 @@ const biologyQuestions = globalThis.BIOLOGY_QUESTIONS;
 const algebra = globalThis.ALGEBRA2_CHAPTER1;
 const frameworks = globalThis.STUDYSPACE_COURSES;
 const learning = globalThis.STUDYSPACE_LEARNING;
+const middleton = globalThis.MIDDLETON_COURSE_LIBRARY;
 
 assert.equal(unit.topics.length, 7, "Unit 1 should expose Topics 1.1–1.7");
 assert.deepEqual(unit.topics.map(topic => topic.id), ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"]);
@@ -92,7 +94,7 @@ assert.equal(new Set(algebra.flashcards.map(card => card.id)).size, algebra.flas
 algebra.flashcards.forEach(card => { for (const field of ["id", "topic", "term", "definition", "example", "concept", "subject"]) assert.ok(card[field], `${card.id} missing ${field}`); });
 
 const expectedCourses = ["aphg", "algebra2", "biology", "thinking-skills", "csit-foundations", "csit-essentials", "english", "orchestra"];
-assert.deepEqual(Object.keys(frameworks.courses).sort(), expectedCourses.sort(), "Every current StudySpace course needs a framework record");
+expectedCourses.forEach(courseId => assert.ok(frameworks.course(courseId), `${courseId} must remain available after the Middleton expansion`));
 assert.equal(frameworks.course("aphg").units.length, 7, "APHG must expose all seven official units");
 frameworks.course("aphg").units.forEach(courseUnit => {
   assert.ok(courseUnit.requiredKnowledge.length >= 3, `APHG Unit ${courseUnit.id} needs required-knowledge checkpoints`);
@@ -144,6 +146,30 @@ for (const courseId of expectedCourses) {
 }
 assert.ok(completeLessonCount >= 280, "The full course catalog should expose at least 280 complete lessons");
 
+const verifiedMiddleton = middleton.list();
+assert.ok(verifiedMiddleton.length >= 170, "The latest Middleton programming-sheet audit should expose the full verified library");
+assert.equal(verifiedMiddleton.length, new Set(verifiedMiddleton.map(course => course.id)).size, "Middleton course IDs must be unique");
+assert.equal(middleton.schoolYear, "2025-2026", "The library must not falsely label the older school-specific programming set as 2026-2027");
+assert.ok(middleton.collections.ap().length >= 20, "The AP collection must include every AP title verified on the Middleton sheets");
+assert.ok(middleton.collections.aice().length >= 9, "The AICE collection must include every AICE title verified on the Middleton sheets");
+let middletonLessonCount = 0;
+for (const course of verifiedMiddleton) {
+  for (const field of ["id", "title", "courseCode", "subject", "level", "gradeLevels", "credits", "prerequisites", "schoolAvailability", "program", "source", "sourceYear", "status", "units"]) assert.notEqual(course[field], undefined, `${course.id} missing library metadata ${field}`);
+  assert.equal(course.availabilityStatus, "verified-middleton", `${course.id} must have school-specific availability evidence`);
+  assert.equal(course.sourceYear, "2025-2026", `${course.id} must keep the actual school source year`);
+  assert.ok(!String(course.offeringSourceUrl || "").match(/^[A-Z]:\\|AppData|Temp/i), `${course.id} must not expose a local source path`);
+  const complete = learning.course(course.id);
+  assert.ok(complete, `${course.id} needs a usable learning course`);
+  complete.units.forEach(courseUnit => courseUnit.lessons.forEach(lesson => {
+    middletonLessonCount += 1;
+    assert.ok(lesson.overview.length > 100, `${lesson.id} needs a substantive overview`);
+    assert.ok(lesson.objectives.length >= 3 && lesson.sections.length >= 3, `${lesson.id} needs real instruction`);
+    assert.ok(lesson.vocabulary.length >= 5 && lesson.practice.length >= 4 && lesson.questions.length >= 4, `${lesson.id} needs complete study tools`);
+  }));
+}
+assert.ok(middletonLessonCount >= 3000, "The verified Middleton library should expose substantial lesson-level content, not empty cards");
+assert.match(learning.lesson("ap-biology", "1", "1.1").overview, /Water is polar, forms hydrogen bonds/, "Representative AP lessons need course-specific factual instruction, not a generic shell");
+
 const core = readFileSync(join(root, "assets/studyspace-core.js"), "utf8");
 assert.match(core, /version:\s*3/, "Shared storage schema should be version 3");
 assert.match(core, /function migrateV2/, "Shared storage should migrate existing version-1 progress");
@@ -163,6 +189,9 @@ for (const file of htmlFiles) {
     assert.ok(existsSync(join(root, local)), `${file} references missing ${local}`);
   }
 }
+const forbiddenClassNotes = /Class Notes|classNotes|class-notes|teacher notes|notes from class/i;
+const uiSourceFiles = ["app.js", "assets/chatbot.js", "assets/course-runtime.js", "assets/course-framework-ui.js", "assets/data/course-frameworks.js", ...htmlFiles];
+for (const file of uiSourceFiles) assert.doesNotMatch(readFileSync(join(root, file), "utf8"), forbiddenClassNotes, `${file} must not reintroduce the dedicated Class Notes UI`);
 
 const requiredPages = [
   "manifest.webmanifest", "sw.js", "offline.html", "planner.html", "study.html",
@@ -170,8 +199,9 @@ const requiredPages = [
   "biology-flashcards.html", "biology-quiz.html", "biology-mistakes.html",
   "biology-material.html", "biology-session.html", "algebra2.html", "algebra2-section.html",
   "algebra2-practice.html", "algebra2-flashcards.html", "algebra2-mistakes.html", "algebra2-session.html",
-  "course-unit.html", "course-lesson.html", "course-flashcards.html", "course-quiz.html", "course-mistakes.html"
+  "course-unit.html", "course-lesson.html", "course-flashcards.html", "course-quiz.html", "course-mistakes.html",
+  "course-library.html", "assets/data/middleton-course-library.js", "assets/course-library.js"
 ];
 for (const required of requiredPages) assert.ok(existsSync(join(root, required)), `${required} is required`);
 
-console.log(`Validated ${expectedCourses.length} complete courses, ${completeLessonCount} reusable lessons, ${unit.vocabulary.length} APHG vocabulary entries, ${questions.length} APHG questions, ${biology.unit1.sequences.length} Biology sequences, ${biologyQuestions.length} Biology questions, ${algebra.sections.length} Algebra sections, ${algebra.flashcards.length} Algebra cards, and ${htmlFiles.length} HTML pages.`);
+console.log(`Validated ${verifiedMiddleton.length} verified Middleton courses, ${middletonLessonCount} library lessons, ${expectedCourses.length} preserved detailed courses, ${completeLessonCount} preserved framework lessons, ${unit.vocabulary.length} APHG vocabulary entries, ${questions.length} APHG questions, ${biology.unit1.sequences.length} Biology sequences, ${biologyQuestions.length} Biology questions, ${algebra.sections.length} Algebra sections, ${algebra.flashcards.length} Algebra cards, and ${htmlFiles.length} HTML pages.`);

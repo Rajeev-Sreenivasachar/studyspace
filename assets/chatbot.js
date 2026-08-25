@@ -4,9 +4,9 @@
   const ROUTES=[
     {label:"StudySpace home",path:"index.html"},{label:"AP Human Geography hub",path:"aphg.html"},
     {label:"APHG flashcards",path:"aphg-flashcards.html"},{label:"APHG quick review",path:"aphg-review.html"},{label:"APHG practice quiz",path:"aphg-quiz.html"},
-    {label:"CSIT Essentials hub",path:"csit-essentials.html"},{label:"CSIT Module 1 notes",path:"csit-module1.html"},
+    {label:"CSIT Essentials hub",path:"csit-essentials.html"},{label:"CSIT Module 1 guide",path:"csit-module1.html"},
     {label:"CSIT flashcards",path:"csit-module1-flashcards.html"},{label:"CSIT practice quiz",path:"csit-module1-quiz.html"},
-    {label:"APHG Topic 1.1 notes",path:"aphg-topic.html?t=1.1"},{label:"APHG Topic 1.6 notes",path:"aphg-topic.html?t=1.6"},
+    {label:"APHG Topic 1.1 lesson",path:"aphg-topic.html?t=1.1"},{label:"APHG Topic 1.6 lesson",path:"aphg-topic.html?t=1.6"},
     {label:"Smart Study Planner",path:"planner.html"},{label:"Study This / Import",path:"study.html"},
     {label:"Biology 1 Honors hub",path:"biology.html"},{label:"Biology Unit 1 flashcards",path:"biology-flashcards.html"},
     {label:"Biology Unit 1 practice",path:"biology-quiz.html"},{label:"Biology My Mistakes",path:"biology-mistakes.html"},

@@ -20,7 +20,8 @@ function siteNav(back = "") {
       </a>
       <button class="mobile-tour" type="button" data-start-tour aria-label="Replay the StudySpace tour">Tour</button>
       <div class="navlinks">
-        <a href="index.html#subjects">Subjects</a>
+        <a href="index.html#subjects">My Courses</a>
+        <a href="course-library.html">Course Library</a>
         <a href="planner.html">Planner</a>
         <a href="study.html">Study This</a>
         <a href="index.html#founder">Our story</a>
@@ -64,7 +65,7 @@ function syncFavicon() {
 function loadScript(src, done = () => {}) {
   const existing = document.querySelector(`script[src="${src}"]`);
   if (existing) {
-    if (existing.dataset.loaded === "true" || src.includes("course-frameworks") && globalThis.STUDYSPACE_COURSES || src.includes("full-course-content") && globalThis.STUDYSPACE_LEARNING || src.includes("aphg-unit1") && globalThis.APHG_UNIT1 || src.includes("biology-course") && globalThis.BIOLOGY_COURSE || src.includes("algebra2-chapter1") && globalThis.ALGEBRA2_CHAPTER1 || src.includes("studyspace-core") && globalThis.StudySpace) done();
+    if (existing.dataset.loaded === "true" || src.includes("course-frameworks") && globalThis.STUDYSPACE_COURSES || src.includes("middleton-course-library") && globalThis.MIDDLETON_COURSE_LIBRARY || src.includes("full-course-content") && globalThis.STUDYSPACE_LEARNING || src.includes("aphg-unit1") && globalThis.APHG_UNIT1 || src.includes("biology-course") && globalThis.BIOLOGY_COURSE || src.includes("algebra2-chapter1") && globalThis.ALGEBRA2_CHAPTER1 || src.includes("studyspace-core") && globalThis.StudySpace) done();
     else existing.addEventListener("load", done, { once: true });
     return;
   }
@@ -75,7 +76,7 @@ function loadScript(src, done = () => {}) {
 }
 
 function loadPlatform(done = () => {}) {
-  loadScript("assets/data/course-frameworks.js?v=3", () => loadScript("assets/data/full-course-content.js?v=2", () => loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/data/algebra2-chapter1.js", () => loadScript("assets/studyspace-core.js", done))))));
+  loadScript("assets/data/course-frameworks.js?v=3", () => loadScript("assets/data/middleton-course-library.js?v=1", () => loadScript("assets/data/full-course-content.js?v=4", () => loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/data/algebra2-chapter1.js", () => loadScript("assets/studyspace-core.js", done)))))));
 }
 
 function renderSmartDashboard() {
@@ -154,7 +155,7 @@ function upgradeHomeSearch() {
     { title: "Class materials", desc: "Teacher materials, AMSCO source slot, and vocabulary assignment", href: "aphg.html#materialsTitle", kind: "Sources" },
     { title: "Smart Study Planner", desc: "Assessments, countdowns, daily plans, and focus sessions", href: "planner.html", kind: "Tool" },
     { title: "Study This and Import", desc: "Paste material, scan a worksheet, save a set, or use the notebook", href: "study.html", kind: "Tool" },
-    { title: "CSIT Essentials", desc: "Hardware notes, flashcards, and practice quiz", href: "csit-essentials.html", kind: "Subject" },
+    { title: "CSIT Essentials", desc: "Hardware lessons, flashcards, and practice quiz", href: "csit-essentials.html", kind: "Subject" },
     { title: "Biology 1 Honors", desc: "5E Unit 1 lessons, flashcards, mastery, mistakes, and practice", href: "biology.html", kind: "Subject" },
     { title: "Biology My Mistakes", desc: "Review, retry, and explain missed Biology concepts", href: "biology-mistakes.html", kind: "Tool" },
     { title: "Algebra 2 Chapter 1", desc: "Interactive functions, transformations, models, inequalities, and piecewise functions", href: "algebra2.html", kind: "Subject" },
@@ -296,15 +297,15 @@ function renderTeam() {
 }
 
 function loadChatbot() {
-  if (!document.querySelector('link[href="assets/chatbot.css"]')) {
+  if (!document.querySelector('link[href^="assets/chatbot.css"]')) {
     const css = document.createElement("link");
     css.rel = "stylesheet";
-    css.href = "assets/chatbot.css";
+    css.href = "assets/chatbot.css?v=1";
     document.head.appendChild(css);
   }
-  if (!document.querySelector('script[src="assets/chatbot.js"]')) {
+  if (!document.querySelector('script[src^="assets/chatbot.js"]')) {
     const script = document.createElement("script");
-    script.src = "assets/chatbot.js";
+    script.src = "assets/chatbot.js?v=2";
     document.body.appendChild(script);
   }
 }
@@ -319,7 +320,7 @@ function tourSteps() {
     {
       target: document.querySelector("#subjects") ? "#subjects" : ".site-nav",
       title: "Move between subjects",
-      text: "Choose Subjects in the navbar or select a subject card to jump into its study pages. Back links make it easy to move around."
+      text: "Use My Courses for your personal dashboard, or open Course Library to search verified Middleton offerings and add a class without affecting saved progress."
     }
   ];
 
@@ -333,7 +334,7 @@ function tourSteps() {
     steps.push({
       target: ".resource-grid",
       title: "Choose a resource",
-      text: "Each subject page groups its available notes, flashcards, and quizzes in one place."
+      text: "Each subject page groups its available lessons, flashcards, and quizzes in one place."
     });
   }
 
