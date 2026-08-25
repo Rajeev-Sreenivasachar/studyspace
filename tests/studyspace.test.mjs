@@ -178,6 +178,14 @@ assert.match(core, /mistakesFor/, "Shared storage should expose a mistake-review
 assert.match(core, /markMistakeReviewed/, "Shared storage should expose mistake review status");
 assert.match(core, /laterCorrected/, "Shared storage should preserve later-corrected status");
 
+const courseLibraryClient = readFileSync(join(root, "assets/course-library.js"), "utf8");
+const courseLibraryPage = readFileSync(join(root, "course-library.html"), "utf8");
+assert.match(courseLibraryClient, /onboardingComplete:\s*false[\s\S]*selectedCourses:\s*\[\]/, "First-time users must begin with zero selected courses");
+assert.doesNotMatch(courseLibraryClient, /const DEFAULTS/, "The dashboard must not silently restore the former eight default courses");
+assert.match(courseLibraryClient, /LEGACY_KEY[\s\S]*onboardingComplete:\s*true/, "Existing explicit course selections need a backward-safe migration");
+assert.match(courseLibraryPage, /data-grade-tab="9"[\s\S]*data-grade-tab="10"[\s\S]*data-grade-tab="11"[\s\S]*data-grade-tab="12"/, "Grade-first browsing must expose all four grade tabs");
+assert.doesNotMatch(courseLibraryPage, /Verified|Availability year|Source Year|Verification Status/i, "The normal Course Library UI must not show verification or source-year labels");
+
 const htmlFiles = readdirSync(root).filter(file => file.endsWith(".html"));
 for (const file of htmlFiles) {
   const html = readFileSync(join(root, file), "utf8");

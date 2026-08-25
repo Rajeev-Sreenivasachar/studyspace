@@ -508,7 +508,7 @@
       frameworkSourceId: framework.id, availabilityStatus: "verified-middleton", schoolAvailability: "Verified on Middleton 2025-2026 programming sheets",
       source: schoolSource.id, status: "verified-middleton",
       sourceYear: schoolYear, offeringSourceUrl: schoolSource.url, contentStatus: "complete-original", libraryRoute: `subject.html?s=${encodeURIComponent(id)}`,
-      summary: `${spec.title} is a verified Middleton offering from the latest complete school-specific programming set located. StudySpace teaches an original ${units.length}-unit sequence mapped to the applicable public framework; teacher pacing and assignments remain separate.`,
+      summary: `${spec.title} includes an original ${units.length}-unit StudySpace sequence mapped to the applicable public framework. Teacher pacing, assignments, and class-specific materials remain separate until supplied.`,
       note: spec.note || "", skills: units.flatMap(item => item.topics.slice(0, 1).map(entry => entry.title)).slice(0, 6), sources: [schoolSource, framework, classSource, generated], units
     };
   }

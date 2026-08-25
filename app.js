@@ -11,6 +11,7 @@ const SUBJECTS = {
 
 const TOUR_STORAGE_KEY = "studyspace-welcome-tour-v1";
 let activeTour = null;
+let tourScheduled = false;
 
 function siteNav(back = "") {
   return `<a class="skip" href="#main">Skip to content</a>
@@ -76,58 +77,37 @@ function loadScript(src, done = () => {}) {
 }
 
 function loadPlatform(done = () => {}) {
-  loadScript("assets/data/course-frameworks.js?v=3", () => loadScript("assets/data/middleton-course-library.js?v=1", () => loadScript("assets/data/full-course-content.js?v=4", () => loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/data/algebra2-chapter1.js", () => loadScript("assets/studyspace-core.js", done)))))));
+  loadScript("assets/data/course-frameworks.js?v=3", () => loadScript("assets/data/middleton-course-library.js?v=2", () => loadScript("assets/data/full-course-content.js?v=4", () => loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/data/algebra2-chapter1.js", () => loadScript("assets/studyspace-core.js", done)))))));
 }
 
 function renderSmartDashboard() {
   const hero = document.querySelector(".hero");
-  if (!hero || document.querySelector("#smartDashboard") || !globalThis.StudySpace) return;
+  if (!hero || !globalThis.StudySpace) return;
+  document.querySelector("#smartDashboard")?.remove();
   const data = StudySpace.state;
   const upcoming = data.assessments.filter(item => (StudySpace.daysUntil(item.date) ?? -1) >= 0).slice(0, 3);
   const recent = data.quizAttempts.slice(-3).reverse();
-  const weak = StudySpace.weakTopics().slice(0, 3);
-  const biologyUnit = globalThis.BIOLOGY_COURSE?.unit1;
-  const biologyMastery = biologyUnit ? StudySpace.allMastery(biologyUnit) : [];
-  const biologyWeak = biologyUnit ? StudySpace.weakTopics(biologyUnit) : [];
-  const biologyStarted = biologyMastery.some(item => item.evidence > 0);
-  const biologyNext = biologyWeak[0]?.topic || biologyMastery.find(item => item.label !== "Mastered")?.topic || "1.1";
-  const algebraUnit = globalThis.ALGEBRA2_CHAPTER1?.chapter1;
-  const algebraMastery = algebraUnit ? StudySpace.allMastery(algebraUnit) : [];
-  const algebraStarted = algebraMastery.some(item => item.evidence > 0);
-  const algebraNext = algebraMastery.filter(item => item.score !== null).sort((a,b)=>a.score-b.score)[0]?.topic || algebraMastery.find(item => item.evidence < 3)?.topic || "1.1";
-  const featuredTitle = document.querySelector("#featured .study-set h3");
-  const featuredTermTag = document.querySelector("#featured .study-set .tag");
-  if (featuredTitle) featuredTitle.textContent = "Unit 1 Vocab — Terms 1–46";
-  if (featuredTermTag) featuredTermTag.textContent = "46 terms";
+  const selected = globalThis.StudySpaceCatalog?.read?.() || [];
+  const selectedCourses = selected.map(id => globalThis.MIDDLETON_COURSE_LIBRARY?.course(id)).filter(Boolean);
   const cards = Object.values(data.flashcardMastery);
   const mastered = cards.filter(item => item.status === "mastered").length;
   const nextAssessment = upcoming[0];
   const plan = nextAssessment ? StudySpace.generatePlan(nextAssessment).filter(task => !task.complete).slice(0, 2) : [];
+  const courseCards = selectedCourses.slice(0, 3).map((course, index) => `<article class="dash-card ${index === 0 ? "dash-primary" : ""}"><span class="dash-icon">${course.icon || "📚"}</span><div class="eyebrow">${index === 0 ? "Continue studying" : course.subject}</div><h3>${StudySpace.escapeHtml(course.title)}</h3><p>${course.units.length} units with lessons, flashcards, practice, and saved mastery.</p><a class="link" href="${globalThis.StudySpaceCatalog.route(course)}">Open course →</a></article>`).join("");
+  const courseArea = courseCards || `<article class="dash-card dash-primary"><span class="dash-icon">＋</span><div class="eyebrow">Start here</div><h3>Choose your courses</h3><p>Your dashboard begins empty so it only reflects the classes you actually take.</p><button class="plain-action" type="button" data-open-course-setup>Choose Courses →</button></article>`;
+  const firstCourse = selectedCourses[0];
   hero.insertAdjacentHTML("afterend", `<section id="smartDashboard" class="smart-dashboard" aria-labelledby="dashboardTitle">
     <div class="section-head"><div><div class="eyebrow">Your dashboard</div><h2 id="dashboardTitle">What needs attention now</h2></div><a class="btn small" href="planner.html">Open planner</a></div>
     <div class="dashboard-grid">
-      <article class="dash-card dash-primary"><span class="dash-icon">▶</span><div class="eyebrow">Continue studying</div><h3>AP Human Geography Unit 1</h3><p>${weak.length ? `Start with Topic ${weak[0].topic}, currently your weakest measured topic.` : "Build your first mastery data with a quick quiz or flashcard round."}</p><a class="link" href="${weak.length ? `aphg-topic.html?t=${weak[0].topic}` : "aphg.html"}">Continue →</a></article>
-      <article class="dash-card"><span class="dash-icon">🧬</span><div class="eyebrow">Biology Unit 1</div><h3>${biologyStarted ? `Continue Sequence ${biologyNext}` : "Start with Properties of Water"}</h3><p>${biologyStarted ? `${biologyMastery.filter(item => item.evidence > 0).length} of 5 sequences have saved activity.` : "Follow the 5E path and build real concept mastery."}</p><a class="link" href="biology-topic.html?t=${biologyNext}">Study Biology →</a></article>
-      <article class="dash-card"><span class="dash-icon">➗</span><div class="eyebrow">Algebra 2 Chapter 1</div><h3>${algebraStarted ? `Continue Section ${algebraNext}` : "Start with Parent Functions"}</h3><p>${algebraStarted ? `${algebraMastery.filter(item => item.evidence > 0).length} of 6 sections have saved activity.` : "Use visual models, progressive hints, and generated practice."}</p><a class="link" href="algebra2-section.html?s=${algebraNext}">Study Algebra 2 →</a></article>
+      ${courseArea}
       <article class="dash-card"><div class="eyebrow">Upcoming</div>${upcoming.length ? upcoming.map(item => `<a class="dash-row" href="planner.html"><strong>${StudySpace.escapeHtml(item.name)}</strong><span>${StudySpace.countdown(item.date)}</span></a>`).join("") : `<p class="muted">No assessments yet.</p><a class="link" href="planner.html">Add one →</a>`}</article>
       <article class="dash-card"><div class="eyebrow">Today's plan</div>${plan.length ? plan.map(task => `<div class="dash-row"><strong>${StudySpace.escapeHtml(task.title)}</strong><span>${task.minutes} min</span></div>`).join("") : `<p class="muted">Add an assessment to generate a realistic plan.</p>`}</article>
-      <article class="dash-card"><div class="eyebrow">Recent progress</div><div class="dash-metrics"><span><strong>${mastered}</strong> cards mastered</span><span><strong>${recent[0]?.percentage ?? "—"}${recent[0] ? "%" : ""}</strong> latest quiz</span></div>${weak.length ? `<p class="muted">Weak: ${weak.map(item => `Topic ${item.topic}`).join(", ")}</p>` : `<p class="muted">Mastery appears only after enough activity.</p>`}</article>
+      <article class="dash-card"><div class="eyebrow">Recent progress</div><div class="dash-metrics"><span><strong>${mastered}</strong> cards mastered</span><span><strong>${recent[0]?.percentage ?? "—"}${recent[0] ? "%" : ""}</strong> latest quiz</span></div><p class="muted">Saved progress remains available even when a course is removed from My Courses.</p></article>
     </div>
-    <div class="quick-actions" aria-label="Quick actions"><a href="study.html">Study This</a><a href="study.html#import">Scan / Import</a><a href="aphg-quiz.html">Practice Quiz</a><a href="aphg-flashcards.html">Flashcards</a><a href="#focus">Focus Timer</a><button type="button" data-dashboard-ai>Ask StudySpace AI</button></div>
+    <div class="quick-actions" aria-label="Quick actions"><a href="study.html">Study This</a><a href="study.html#import">Scan / Import</a>${firstCourse ? `<a href="course-quiz.html?c=${encodeURIComponent(firstCourse.id)}">Practice Quiz</a><a href="course-flashcards.html?c=${encodeURIComponent(firstCourse.id)}">Flashcards</a>` : `<button type="button" data-open-course-setup>Choose Courses</button>`}<a href="#focus">Focus Timer</a><button type="button" data-dashboard-ai>Ask StudySpace AI</button></div>
   </section>`);
   document.querySelector("[data-dashboard-ai]")?.addEventListener("click", () => StudySpace.openAI("Help me choose what to study next based on the StudySpace page and my request." , false));
-  const biologyCard = [...document.querySelectorAll("#subjectCards a.card")].find(card => card.textContent.includes("Biology 1 Honors"));
-  if (biologyCard) {
-    biologyCard.href = "biology.html";
-    biologyCard.querySelector(".link").textContent = "Start studying →";
-    if (!biologyCard.querySelector(".subject-progress")) biologyCard.insertAdjacentHTML("beforeend", `<div class="subject-progress" aria-label="Biology Unit 1 progress">${biologyMastery.map(item => `<span><b>${item.topic}</b> ${StudySpace.escapeHtml(item.label)}</span>`).join("")}</div>`);
-  }
-  const algebraCard = [...document.querySelectorAll("#subjectCards a.card")].find(card => card.textContent.includes("Algebra 2 Honors"));
-  if (algebraCard) {
-    algebraCard.href = "algebra2.html";
-    algebraCard.querySelector(".link").textContent = "Open Chapter 1 →";
-    if (!algebraCard.querySelector(".subject-progress")) algebraCard.insertAdjacentHTML("beforeend", `<div class="subject-progress" aria-label="Algebra 2 Chapter 1 progress">${algebraMastery.map(item => `<span><b>${item.topic}</b> ${StudySpace.escapeHtml(item.label)}</span>`).join("")}</div>`);
-  }
+  document.querySelectorAll("#smartDashboard [data-open-course-setup]").forEach(button => button.onclick = () => StudySpaceCatalog.openSetup(true));
 }
 
 function upgradeHomeSearch() {
@@ -320,7 +300,7 @@ function tourSteps() {
     {
       target: document.querySelector("#subjects") ? "#subjects" : ".site-nav",
       title: "Move between subjects",
-      text: "Use My Courses for your personal dashboard, or open Course Library to search verified Middleton offerings and add a class without affecting saved progress."
+      text: "Use My Courses for your personal dashboard, or open Course Library to browse by grade and subject without affecting saved progress."
     }
   ];
 
@@ -457,17 +437,27 @@ function startTour() {
   showTourStep(0);
 }
 
+function scheduleWelcomeTour() {
+  if (activeTour || tourScheduled || localStorage.getItem(TOUR_STORAGE_KEY) === "complete") return;
+  tourScheduled = true;
+  const startWhenAiIsReady = attempt => {
+    if (document.querySelector(".ssai-toggle") || attempt >= 12) {
+      tourScheduled = false;
+      startTour();
+    } else {
+      window.setTimeout(() => startWhenAiIsReady(attempt + 1), 200);
+    }
+  };
+  window.setTimeout(() => startWhenAiIsReady(0), 500);
+}
+
 function setupTour() {
   document.querySelectorAll("[data-start-tour]").forEach(button => {
     button.addEventListener("click", startTour);
   });
-  if (localStorage.getItem(TOUR_STORAGE_KEY) !== "complete") {
-    const startWhenAiIsReady = attempt => {
-      if (document.querySelector(".ssai-toggle") || attempt >= 12) startTour();
-      else window.setTimeout(() => startWhenAiIsReady(attempt + 1), 200);
-    };
-    window.setTimeout(() => startWhenAiIsReady(0), 500);
-  }
+  let courseSetupComplete = false;
+  try { courseSetupComplete = JSON.parse(localStorage.getItem("studyspace-course-setup-v2"))?.onboardingComplete === true; } catch {}
+  if (courseSetupComplete) scheduleWelcomeTour();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -486,5 +476,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   loadChatbot();
   setupTour();
+  window.addEventListener("studyspace:courses", event => {
+    renderSmartDashboard();
+    if (event.detail?.onboardingComplete) scheduleWelcomeTour();
+  });
   registerPwa();
 });

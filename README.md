@@ -13,7 +13,7 @@ The framework catalog uses current official public sources checked on August 24,
 ## Main student flows
 
 - `index.html` — My Courses dashboard, universal search, recent progress, founder story, and focus timer
-- `course-library.html` — searchable, filterable Middleton catalog with add/remove dashboard controls and clear source-year labeling
+- `course-library.html` — grade-first Middleton catalog grouped by subject, with search, filters, and add/remove dashboard controls
 - `aphg.html` — AP Human Geography Unit 1 dashboard, topic map, mastery, class materials, and study sessions
 - `aphg-topic.html?t=1.1` — reusable source-aware topic page for Topics 1.1–1.7
 - `aphg-material.html?id=teacher-1-1` — reusable class-material viewer and Study This actions
@@ -70,6 +70,8 @@ The practice engine does not expose the answer immediately. It reveals one hint 
 ## Progress and local data
 
 `assets/studyspace-core.js` owns versioned local state in `studyspace-app-v1`. Schema version 3 adds subject-safe Algebra 2 evidence, mistake categories, reviewed status, and later-corrected status. Its migrations preserve prior APHG and Biology flashcard, quiz, planning, notebook, and chatbot history.
+
+Course setup is stored separately in `studyspace-course-setup-v2`. New users begin with no selected courses and complete grade-and-course onboarding; explicit selections from the former `studyspace-my-courses-v1` key migrate forward. Removing a course only changes the dashboard selection and never deletes mastery, mistakes, quiz history, flashcard progress, or other study data.
 
 Topic mastery needs at least three pieces of evidence. When enough exists, quiz performance contributes 70% and flashcard mastery contributes 30%; available components are normalized when only one evidence type exists. Scores are labeled Strong at 80%+, Developing at 60–79%, and Weak below 60%. Until then, the interface says `Not enough data yet`.
 

@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Search verified Middleton High School courses and add them to your StudySpace dashboard.">
+  <meta name="description" content="Browse Middleton High School courses by grade and subject, then add classes to your StudySpace dashboard.">
   <title>Middleton Course Library | StudySpace</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=11">
+  <link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body data-library-page>
   <div class="wrap">
@@ -15,14 +15,21 @@
       <header class="page-head library-head">
         <div class="eyebrow">Middleton High School · Tampa, Florida</div>
         <h1>Course <span class="gradient-text">Library</span></h1>
-        <p class="lead">Search courses verified on Middleton’s latest complete school-specific programming sheets found. Add a course to My Courses without changing or deleting any saved mastery, quiz, flashcard, or mistake history.</p>
-        <div class="catalog-trust"><strong>Availability year: 2025-2026</strong><span>Middleton has not published a complete 2026-2027 programming set on its guidance page. Course availability can change; confirm registration details with your counselor.</span></div>
+        <p class="lead">Choose a grade, browse by subject, or search for a class. Add courses to My Courses without changing any saved mastery, quizzes, flashcards, or mistake history.</p>
       </header>
+
+      <nav class="grade-browser" aria-label="Browse courses by grade">
+        <button type="button" data-grade-tab="" aria-pressed="true">All Courses</button>
+        <button type="button" data-grade-tab="9" aria-pressed="false"><strong>9th</strong><span>Grade</span></button>
+        <button type="button" data-grade-tab="10" aria-pressed="false"><strong>10th</strong><span>Grade</span></button>
+        <button type="button" data-grade-tab="11" aria-pressed="false"><strong>11th</strong><span>Grade</span></button>
+        <button type="button" data-grade-tab="12" aria-pressed="false"><strong>12th</strong><span>Grade</span></button>
+      </nav>
 
       <section class="library-collections" aria-label="Course collections">
         <a href="#libraryResults" data-collection="AP"><span>AP</span><strong id="apCollectionCount">0 courses</strong><small>Current College Board frameworks</small></a>
         <a href="#libraryResults" data-collection="AICE"><span>AICE</span><strong id="aiceCollectionCount">0 courses</strong><small>Current Cambridge syllabuses</small></a>
-        <a href="#libraryResults" data-collection="Magnet"><span>STEM</span><strong id="magnetCollectionCount">0 courses</strong><small>Four verified magnet pathways</small></a>
+        <a href="#libraryResults" data-collection="Magnet"><span>STEM</span><strong id="magnetCollectionCount">0 courses</strong><small>Four Middleton magnet pathways</small></a>
       </section>
 
       <section class="library-tools panel" aria-labelledby="libraryToolsTitle">
@@ -30,30 +37,29 @@
         <label class="library-search">Course or topic<input id="librarySearch" type="search" placeholder="Try AP Biology, engineering, orchestra, Spanish…" autocomplete="off"></label>
         <label>Subject<select id="subjectFilter"><option value="">All subjects</option></select></label>
         <label>Level<select id="levelFilter"><option value="">All levels</option></select></label>
-        <label>Grade<select id="gradeFilter"><option value="">All grades</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
         <label>Program<select id="programFilter"><option value="">All programs</option></select></label>
         <button class="btn small" id="clearLibraryFilters" type="button">Clear filters</button>
       </section>
 
       <section id="libraryResults" aria-labelledby="libraryResultsTitle">
-        <div class="section-head"><div><h2 id="libraryResultsTitle">Verified Middleton courses</h2><p id="librarySummary">Loading the verified catalog…</p></div><a class="btn small" href="index.html#subjects">Open My Courses</a></div>
-        <div class="course-library-grid" id="courseLibraryGrid"></div>
-        <div class="empty-state panel" id="libraryEmpty" hidden><h3>No verified course matches</h3><p class="muted">Clear a filter or try a broader course, subject, or topic.</p></div>
+        <div class="section-head"><div><h2 id="libraryResultsTitle">Browse courses</h2><p id="librarySummary">Loading the course catalog…</p></div><a class="btn small" href="index.html#subjects">Open My Courses</a></div>
+        <div class="grade-course-groups" id="courseLibraryGrid"></div>
+        <div class="empty-state panel" id="libraryEmpty" hidden><h3>No course matches</h3><p class="muted">Clear a filter or try a broader course, subject, or topic.</p></div>
       </section>
 
-      <section class="source-note panel" aria-labelledby="courseSourcesTitle">
-        <div><div class="eyebrow">Course sources</div><h2 id="courseSourcesTitle">Small labels, clear meaning</h2></div>
-        <p><strong>Verified at Middleton</strong> means a course appears on at least one official Middleton 2025-2026 grade-selection sheet or pathway table. <strong>Official framework</strong> means StudySpace uses the applicable Florida, College Board, Cambridge, PLTW, or Cisco public framework for what to teach. Teacher-specific pacing and assignments are never invented.</p>
+      <details class="source-note panel">
+        <summary id="courseSourcesTitle">Course Sources</summary>
+        <p>StudySpace uses Middleton course-selection materials for the catalog and the applicable Florida, College Board, Cambridge, PLTW, or Cisco public framework for instruction. Course schedules can change, so students should confirm registration details with a counselor.</p>
         <a class="link" href="https://www.hillsboroughschools.org/o/middleton/page/guidance" target="_blank" rel="noopener">Open Middleton guidance source →</a>
-      </section>
+      </details>
     </main>
     <div data-footer></div>
   </div>
   <script src="assets/data/course-frameworks.js?v=3"></script>
-  <script src="assets/data/middleton-course-library.js?v=1"></script>
+  <script src="assets/data/middleton-course-library.js?v=2"></script>
   <script src="assets/data/full-course-content.js?v=4"></script>
   <script src="assets/studyspace-core.js"></script>
-  <script src="app.js?v=13"></script>
-  <script src="assets/course-library.js?v=2"></script>
+  <script src="app.js?v=15"></script>
+  <script src="assets/course-library.js?v=4"></script>
 </body>
 </html>

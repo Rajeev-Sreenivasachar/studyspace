@@ -6,7 +6,7 @@
   <meta name="description" content="StudySpace brings student-friendly flashcards, quizzes, reviews, and focus tools together.">
   <title>StudySpace | Your Study Home Base</title>
   <link rel="icon" href="assets/favicon.png">
-  <link rel="stylesheet" href="styles.css?v=11">
+  <link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
   <div class="wrap">
@@ -38,7 +38,7 @@
       </section>
 
       <section id="subjects">
-        <div class="section-head"><div><h2>My Courses</h2><p>Your chosen dashboard. Removing a course only hides it here; saved mastery and history stay intact.</p></div><div class="actions"><span class="muted" id="myCourseCount">8 courses</span><a class="btn small" href="course-library.html">Manage courses</a></div></div>
+        <div class="section-head"><div><h2>My Courses</h2><p>Your classes and saved progress, all in one place.</p></div><div class="actions"><span class="muted" id="myCourseCount">0 courses</span><button class="btn small" type="button" data-open-course-setup>Edit Courses</button><a class="btn small" href="course-library.html">Browse Library</a></div></div>
         <div class="cards" id="subjectCards"></div>
       </section>
 
@@ -64,11 +64,11 @@
     <div data-footer></div>
   </div>
   <script src="assets/data/course-frameworks.js?v=3"></script>
-  <script src="assets/data/middleton-course-library.js?v=1"></script>
+  <script src="assets/data/middleton-course-library.js?v=2"></script>
   <script src="assets/data/full-course-content.js?v=4"></script>
   <script src="assets/studyspace-core.js"></script>
-  <script src="app.js?v=13"></script>
-  <script src="assets/course-library.js?v=2"></script>
+  <script src="app.js?v=15"></script>
+  <script src="assets/course-library.js?v=4"></script>
   <script>
     let remaining = 1500;
     let timerId;
