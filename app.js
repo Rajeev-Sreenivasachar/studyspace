@@ -262,16 +262,6 @@ function renderTeam() {
             </div>
           </div>
         </article>
-        <article class="promoter-card">
-          <div class="profile-avatar" aria-hidden="true">PV</div>
-          <span class="profile-role promoter-role">Promoter</span>
-          <h3>Param Vaishya</h3>
-          <p class="profile-year">Freshman • 9th Grade • Class of 2030</p>
-          <p>Param helps promote StudySpace and introduce more students to its study tools, resources, and AI assistant.</p>
-          <div class="profile-values" aria-label="Param's role">
-            <span>Student outreach</span><span>Community</span>
-          </div>
-        </article>
       </div>
     </section>`);
 }
@@ -328,7 +318,7 @@ function tourSteps() {
     steps.push({
       target: "#founder",
       title: "A student-led project",
-      text: "StudySpace was founded by Rajeev Sreenivasachar and is promoted by Param Vaishya to help more students learn with confidence."
+      text: "StudySpace was founded by Rajeev Sreenivasachar to help students learn with more confidence."
     });
   }
 
