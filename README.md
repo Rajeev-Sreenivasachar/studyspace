@@ -81,7 +81,7 @@ Assessments, generated plan tasks, task completion, quiz attempts, question perf
 
 The existing Gemini backend remains the single AI route at `api/chat.js`; the API key never enters frontend JavaScript. The tutor can use visible page text or the explicitly selected source, maintain separate local chats by subject, interpret commands such as `quiz me on Topic 1.6` and `start a 15-minute focus session`, navigate resources, scroll the page, and accept PNG/JPEG/WebP screenshots under 2.5 MB.
 
-Set `GEMINI_API_KEY` in the Vercel project's Production, Preview, and Development environments. For local serverless development, copy `.env.example` to an untracked `.env.local`. The backend currently uses `gemini-3.5-flash-lite` through Google's official `@google/genai` SDK.
+Set `GEMINI_API_KEY` in the Vercel project's Production, Preview, and Development environments. For local serverless development, copy `.env.example` to an untracked `.env.local`. The backend currently uses the stable `gemini-3.5-flash` model through Google's official `@google/genai` SDK.
 
 ## Offline and installation
 

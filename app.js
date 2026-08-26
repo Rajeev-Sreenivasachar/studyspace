@@ -275,7 +275,7 @@ function loadChatbot() {
   }
   if (!document.querySelector('script[src^="assets/chatbot.js"]')) {
     const script = document.createElement("script");
-    script.src = "assets/chatbot.js?v=2";
+    script.src = "assets/chatbot.js?v=3";
     document.body.appendChild(script);
   }
 }

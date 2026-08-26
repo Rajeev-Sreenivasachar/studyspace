@@ -1,7 +1,7 @@
-const CACHE = "studyspace-shell-v20";
+const CACHE = "studyspace-shell-v21";
 const CORE = [
-  "./", "index.html", "offline.html", "styles.css", "app.js?v=16", "manifest.webmanifest",
-  "assets/favicon.svg", "assets/chatbot.css?v=1", "assets/chatbot.js?v=2", "assets/studyspace-core.js",
+  "./", "index.html", "offline.html", "styles.css", "app.js?v=17", "manifest.webmanifest",
+  "assets/favicon.svg", "assets/chatbot.css?v=1", "assets/chatbot.js?v=3", "assets/studyspace-core.js",
   "assets/data/course-frameworks.js?v=3", "assets/data/middleton-course-library.js?v=2", "assets/data/full-course-content.js?v=4", "assets/course-framework-ui.js?v=4", "assets/course-runtime.js?v=4", "assets/course-library.js?v=4", "styles.css?v=14",
   "assets/data/aphg-unit1.js", "assets/data/question-bank.js", "aphg.html", "aphg-topic.html",
   "aphg-material.html", "aphg-review.html", "aphg-flashcards.html", "aphg-quiz.html", "planner.html", "study.html",

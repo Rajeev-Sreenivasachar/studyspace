@@ -186,6 +186,14 @@ assert.match(courseLibraryClient, /LEGACY_KEY[\s\S]*onboardingComplete:\s*true/,
 assert.match(courseLibraryPage, /data-grade-tab="9"[\s\S]*data-grade-tab="10"[\s\S]*data-grade-tab="11"[\s\S]*data-grade-tab="12"/, "Grade-first browsing must expose all four grade tabs");
 assert.doesNotMatch(courseLibraryPage, /Verified|Availability year|Source Year|Verification Status/i, "The normal Course Library UI must not show verification or source-year labels");
 
+const chatApi = readFileSync(join(root, "api/chat.js"), "utf8");
+const chatClient = readFileSync(join(root, "assets/chatbot.js"), "utf8");
+assert.ok(chatApi.includes('const MODEL="gemini-3.5-flash";'), "StudySpace AI should use regular Gemini 3.5 Flash");
+assert.doesNotMatch(chatApi, /gemini-3\.5-flash-lite/, "The retired Lite model selection must not return");
+assert.match(chatApi, /Never wrap variables, numbers, or equations in dollar signs/, "The tutor prompt should request plain-text math");
+assert.ok(chatApi.includes('.replace(/\\$/g,"")'), "The API must remove stray dollar delimiters from model output");
+assert.ok(chatClient.includes('.replace(/\\$/g,"")'), "The chat UI must clean both new and saved assistant messages");
+
 const htmlFiles = readdirSync(root).filter(file => file.endsWith(".html"));
 for (const file of htmlFiles) {
   const html = readFileSync(join(root, file), "utf8");
