@@ -106,7 +106,7 @@
       feature.innerHTML = `<div class="eyebrow">Build your dashboard</div><h3>Choose your first course</h3><p class="lead">Add the classes you take now. StudySpace will keep this page focused on your schedule.</p><div class="actions"><button class="btn primary" type="button" data-open-course-setup>Choose Courses</button><a class="btn" href="course-library.html">Browse Course Library</a></div>`;
       return;
     }
-    feature.innerHTML = `<div class="eyebrow">Continue your course</div><h3>${esc(course.title)}</h3><p class="lead">Open the complete course, review its lessons, or practice with flashcards and original questions.</p><div class="tags"><span class="tag">${esc(course.subject)}</span><span class="tag">${esc(course.level)}</span><span class="tag">${course.units.length} units</span></div><div class="actions"><a class="btn primary" href="${route(course)}">Open course</a><a class="btn" href="course-flashcards.html?c=${encodeURIComponent(course.id)}">Study flashcards</a></div>`;
+    feature.innerHTML = `<div class="eyebrow">Continue your course</div><h3>${esc(course.title)}</h3><p class="lead">Open the available course map, review its lessons, or practice with flashcards and original questions.</p><div class="tags"><span class="tag">${esc(course.subject)}</span><span class="tag">${esc(course.level)}</span><span class="tag">${course.units.length} units</span></div><div class="actions"><a class="btn primary" href="${route(course)}">Open course</a><a class="btn" href="course-flashcards.html?c=${encodeURIComponent(course.id)}">Study flashcards</a></div>`;
   }
 
   function renderHome() {

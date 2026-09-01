@@ -1,14 +1,3 @@
-const SUBJECTS = {
-  aphg: ["AP Human Geography", "🌍"],
-  algebra2: ["Algebra 2 Honors", "➗"],
-  biology: ["Biology 1 Honors", "🧬"],
-  english: ["English 1 Honors", "📖"],
-  "csit-foundations": ["CSIT Foundations", "💻"],
-  "csit-essentials": ["CSIT Essentials", "🖥️"],
-  orchestra: ["Orchestra 1", "🎻"],
-  "thinking-skills": ["AICE Thinking Skills", "💡"]
-};
-
 const TOUR_STORAGE_KEY = "studyspace-welcome-tour-v1";
 let activeTour = null;
 let tourScheduled = false;
@@ -25,16 +14,15 @@ function siteNav(back = "") {
         <a href="course-library.html">Course Library</a>
         <a href="planner.html">Planner</a>
         <a href="study.html">Study This</a>
-        <a href="index.html#founder">Our story</a>
-        <a href="index.html#focus">Focus timer</a>
-        <button class="nav-tour" type="button" data-start-tour>Take a tour</button>
+        <a href="feedback.html">Feedback</a>
+        <details class="nav-more"><summary>More</summary><div><a href="index.html#focus">Focus timer</a><a href="index.html#founder">Team</a><button class="nav-tour" type="button" data-start-tour>Take a tour</button></div></details>
         ${back ? `<a href="${back}">Back</a>` : ""}
       </div>
     </nav>`;
 }
 
 function footer() {
-  return `<footer><span>StudySpace • founded by Rajeev Sreenivasachar • built to help students lock in</span><button class="pwa-install" type="button" hidden>Install StudySpace</button></footer>`;
+  return `<footer><span>StudySpace · built by students, for students.</span><span><a href="feedback.html">Feedback</a> · <a href="index.html#founder">Team</a></span><button class="pwa-install" type="button" hidden>Install StudySpace</button></footer>`;
 }
 
 function syncFavicon() {
@@ -77,7 +65,7 @@ function loadScript(src, done = () => {}) {
 }
 
 function loadPlatform(done = () => {}) {
-  loadScript("assets/data/course-frameworks.js?v=3", () => loadScript("assets/data/middleton-course-library.js?v=2", () => loadScript("assets/data/full-course-content.js?v=4", () => loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/data/algebra2-chapter1.js", () => loadScript("assets/studyspace-core.js", done)))))));
+  loadScript("assets/data/course-frameworks.js?v=4", () => loadScript("assets/data/middleton-course-library.js?v=2", () => loadScript("assets/data/full-course-content.js?v=5", () => loadScript("assets/data/aphg-unit1.js", () => loadScript("assets/data/biology-course.js", () => loadScript("assets/data/algebra2-chapter1.js", () => loadScript("assets/studyspace-core.js?v=4", done)))))));
 }
 
 function renderSmartDashboard() {
@@ -93,18 +81,25 @@ function renderSmartDashboard() {
   const mastered = cards.filter(item => item.status === "mastered").length;
   const nextAssessment = upcoming[0];
   const plan = nextAssessment ? StudySpace.generatePlan(nextAssessment).filter(task => !task.complete).slice(0, 2) : [];
-  const courseCards = selectedCourses.slice(0, 3).map((course, index) => `<article class="dash-card ${index === 0 ? "dash-primary" : ""}"><span class="dash-icon">${course.icon || "📚"}</span><div class="eyebrow">${index === 0 ? "Continue studying" : course.subject}</div><h3>${StudySpace.escapeHtml(course.title)}</h3><p>${course.units.length} units with lessons, flashcards, practice, and saved mastery.</p><a class="link" href="${globalThis.StudySpaceCatalog.route(course)}">Open course →</a></article>`).join("");
+  const dueCount = StudySpace.dueReviews().length;
+  const queue = data.studyQueue.slice(0, 3);
+  const courseCards = selectedCourses.slice(0, 3).map((course, index) => {
+    const next = StudySpace.nextBestStep(course.id);
+    return `<article class="dash-card ${index === 0 ? "dash-primary" : ""}"><span class="dash-icon">${course.icon || "S"}</span><div class="eyebrow">${StudySpace.escapeHtml(next?.reason || course.subject)}</div><h3>${StudySpace.escapeHtml(course.title)}</h3><p>${next ? `Next: ${StudySpace.escapeHtml(next.title)}` : `${course.units.length} units with lessons, practice, and saved mastery.`}</p><a class="link" href="${next?.href || globalThis.StudySpaceCatalog.route(course)}">${next ? "Start next step" : "Open course"} →</a></article>`;
+  }).join("");
   const courseArea = courseCards || `<article class="dash-card dash-primary"><span class="dash-icon">＋</span><div class="eyebrow">Start here</div><h3>Choose your courses</h3><p>Your dashboard begins empty so it only reflects the classes you actually take.</p><button class="plain-action" type="button" data-open-course-setup>Choose Courses →</button></article>`;
   const firstCourse = selectedCourses[0];
+  const quick = firstCourse ? StudySpace.quickStudy(firstCourse.id, 10) : null;
   hero.insertAdjacentHTML("afterend", `<section id="smartDashboard" class="smart-dashboard" aria-labelledby="dashboardTitle">
     <div class="section-head"><div><div class="eyebrow">Your dashboard</div><h2 id="dashboardTitle">What needs attention now</h2></div><a class="btn small" href="planner.html">Open planner</a></div>
     <div class="dashboard-grid">
       ${courseArea}
       <article class="dash-card"><div class="eyebrow">Upcoming</div>${upcoming.length ? upcoming.map(item => `<a class="dash-row" href="planner.html"><strong>${StudySpace.escapeHtml(item.name)}</strong><span>${StudySpace.countdown(item.date)}</span></a>`).join("") : `<p class="muted">No assessments yet.</p><a class="link" href="planner.html">Add one →</a>`}</article>
       <article class="dash-card"><div class="eyebrow">Today's plan</div>${plan.length ? plan.map(task => `<div class="dash-row"><strong>${StudySpace.escapeHtml(task.title)}</strong><span>${task.minutes} min</span></div>`).join("") : `<p class="muted">Add an assessment to generate a realistic plan.</p>`}</article>
-      <article class="dash-card"><div class="eyebrow">Recent progress</div><div class="dash-metrics"><span><strong>${mastered}</strong> cards mastered</span><span><strong>${recent[0]?.percentage ?? "—"}${recent[0] ? "%" : ""}</strong> latest quiz</span></div><p class="muted">Saved progress remains available even when a course is removed from My Courses.</p></article>
+      <article class="dash-card"><div class="eyebrow">Review and queue</div><div class="dash-metrics"><span><strong>${dueCount}</strong> reviews due</span><span><strong>${mastered}</strong> cards mastered</span></div>${queue.length ? queue.map(item => `<a class="dash-row" href="${StudySpace.escapeHtml(item.href || "study.html")}"><strong>${StudySpace.escapeHtml(item.title)}</strong><span>Queued</span></a>`).join("") : `<p class="muted">Save a lesson to build your study queue.</p>`}</article>
+      <article class="dash-card"><div class="eyebrow">Recent study</div>${data.recentStudy.length ? data.recentStudy.slice(0, 3).map(item => `<div class="dash-row"><strong>${StudySpace.escapeHtml(item.title || item.type)}</strong><span>${new Date(item.studiedAt).toLocaleDateString()}</span></div>`).join("") : `<div class="dash-metrics"><span><strong>${recent[0]?.percentage ?? "—"}${recent[0] ? "%" : ""}</strong> latest quiz</span></div><p class="muted">Your latest activities will appear here.</p>`}</article>
     </div>
-    <div class="quick-actions" aria-label="Quick actions"><a href="study.html">Study This</a><a href="study.html#import">Scan / Import</a>${firstCourse ? `<a href="course-quiz.html?c=${encodeURIComponent(firstCourse.id)}">Practice Quiz</a><a href="course-flashcards.html?c=${encodeURIComponent(firstCourse.id)}">Flashcards</a>` : `<button type="button" data-open-course-setup>Choose Courses</button>`}<a href="#focus">Focus Timer</a><button type="button" data-dashboard-ai>Ask StudySpace AI</button></div>
+    <div class="quick-actions" aria-label="Quick actions"><a href="study.html">Study This</a><a href="study.html#import">Scan / Import</a>${quick ? `<a href="${quick.href}">10-minute Quick Study</a>` : `<button type="button" data-open-course-setup>Choose Courses</button>`}${firstCourse ? `<a href="course-quiz.html?c=${encodeURIComponent(firstCourse.id)}">Practice Quiz</a><a href="course-flashcards.html?c=${encodeURIComponent(firstCourse.id)}">Flashcards</a>` : ""}<a href="planner.html#weeklyReview">Weekly Review</a><a href="#focus">Focus Timer</a><button type="button" data-dashboard-ai>Ask StudySpace AI</button></div>
   </section>`);
   document.querySelector("[data-dashboard-ai]")?.addEventListener("click", () => StudySpace.openAI("Help me choose what to study next based on the StudySpace page and my request." , false));
   document.querySelectorAll("#smartDashboard [data-open-course-setup]").forEach(button => button.onclick = () => StudySpaceCatalog.openSetup(true));
@@ -116,10 +111,10 @@ function upgradeHomeSearch() {
   if (!input || !results || !globalThis.APHG_UNIT1) return;
   const unit = APHG_UNIT1;
   const frameworkIndex = Object.values(globalThis.STUDYSPACE_COURSES?.courses || {}).flatMap(course => course.units.flatMap(courseUnit => [
-    { title: `${course.title}: ${courseUnit.title}`, desc: `${courseUnit.summary} ${courseUnit.topics.map(topic => topic.title).join(" ")}`, href: `course-unit.html?c=${course.id}&u=${encodeURIComponent(courseUnit.id)}`, kind: "Complete unit" },
+    { title: `${course.title}: ${courseUnit.title}`, desc: `${courseUnit.summary} ${courseUnit.topics.map(topic => topic.title).join(" ")}`, href: `course-unit.html?c=${course.id}&u=${encodeURIComponent(courseUnit.id)}`, kind: courseUnit.contentStatus === "class-aligned" ? "Class-aligned unit" : "Framework-aligned unit" },
     ...courseUnit.topics.map(topic => {
       const lesson = globalThis.STUDYSPACE_LEARNING?.lesson(course.id, courseUnit.id, topic.id);
-      return { title: `${course.title} ${topic.id}: ${topic.title}`, desc: `${topic.summary} ${(lesson?.vocabulary || []).map(item => `${item.term} ${item.definition}`).join(" ")}`, href: `course-lesson.html?c=${course.id}&u=${encodeURIComponent(courseUnit.id)}&l=${encodeURIComponent(topic.id)}`, kind: "Complete lesson" };
+      return { title: `${course.title} ${topic.id}: ${topic.title}`, desc: `${topic.summary} ${(lesson?.vocabulary || []).map(item => `${item.term} ${item.definition}`).join(" ")}`, href: `course-lesson.html?c=${course.id}&u=${encodeURIComponent(courseUnit.id)}&l=${encodeURIComponent(topic.id)}`, kind: topic.contentStatus === "class-aligned" ? "Class-aligned lesson" : "Framework-aligned lesson" };
     })
   ]));
   const index = [
@@ -134,7 +129,8 @@ function upgradeHomeSearch() {
     { title: "APHG quiz builder", desc: "Quick, standard, full, topic, weak, and mistake quizzes", href: "aphg-quiz.html", kind: "Tool" },
     { title: "Class materials", desc: "Teacher materials, AMSCO source slot, and vocabulary assignment", href: "aphg.html#materialsTitle", kind: "Sources" },
     { title: "Smart Study Planner", desc: "Assessments, countdowns, daily plans, and focus sessions", href: "planner.html", kind: "Tool" },
-    { title: "Study This and Import", desc: "Paste material, scan a worksheet, save a set, or use the notebook", href: "study.html", kind: "Tool" },
+    { title: "Study This and Import", desc: "Paste material, scan a worksheet, save a set, or restore a backup", href: "study.html", kind: "Tool" },
+    { title: "Send feedback", desc: "Report missing content, incorrect information, class updates, bugs, or ideas", href: "feedback.html", kind: "Tool" },
     { title: "CSIT Essentials", desc: "Hardware lessons, flashcards, and practice quiz", href: "csit-essentials.html", kind: "Subject" },
     { title: "Biology 1 Honors", desc: "5E Unit 1 lessons, flashcards, mastery, mistakes, and practice", href: "biology.html", kind: "Subject" },
     { title: "Biology My Mistakes", desc: "Review, retry, and explain missed Biology concepts", href: "biology-mistakes.html", kind: "Tool" },
@@ -147,8 +143,13 @@ function upgradeHomeSearch() {
   input.oninput = () => {
     const query = input.value.trim().toLowerCase();
     if (!query) return void (results.hidden = true);
-    const commandTopic = query.match(/(?:quiz me|practice|quiz).*?(1\.[1-7])/);
-    const commands = commandTopic ? [{ title: `Start Topic ${commandTopic[1]} quiz`, desc: "Command", href: `aphg-quiz.html?mode=topic&topic=${commandTopic[1]}`, kind: "Action" }] : /study.*weak/.test(query) ? [{ title: "Study weak topics", desc: "Uses your measured mastery", href: "aphg-flashcards.html?mode=weak", kind: "Action" }] : /study.*mistake/.test(query) ? [{ title: "Study my mistakes", desc: "Builds from missed quiz concepts", href: "aphg-flashcards.html?mode=missed", kind: "Action" }] : [];
+    const selectedIds = globalThis.StudySpaceCatalog?.read?.() || [];
+    const primaryCourse = globalThis.MIDDLETON_COURSE_LIBRARY?.course(selectedIds[0]);
+    const commandTopic = query.match(/(?:quiz me|practice|quiz).*?(\d+(?:\.\d+)?)/);
+    const commandCourse = commandTopic ? Object.values(globalThis.STUDYSPACE_COURSES?.courses || {}).find(course => course.units.some(unitItem => unitItem.topics.some(topicItem => topicItem.id === commandTopic[1])) && (!primaryCourse || course.id === primaryCourse.id)) || globalThis.STUDYSPACE_COURSES?.course("aphg") : null;
+    const topicUnit = commandCourse?.units.find(unitItem => unitItem.topics.some(topicItem => topicItem.id === commandTopic?.[1]));
+    const focusCommand = query.match(/(?:focus|timer).*?(\d{1,3})/);
+    const commands = commandTopic && commandCourse && topicUnit ? [{ title: `Quiz ${commandCourse.title} ${commandTopic[1]}`, desc: "Command", href: `course-quiz.html?c=${encodeURIComponent(commandCourse.id)}&u=${encodeURIComponent(topicUnit.id)}&topic=${encodeURIComponent(commandTopic[1])}`, kind: "Action" }] : focusCommand ? [{ title: `Start a ${Math.min(120, Math.max(1, Number(focusCommand[1])))}-minute focus session`, desc: "Command", href: `index.html?minutes=${Math.min(120, Math.max(1, Number(focusCommand[1])))}#focus`, kind: "Action" }] : /study.*weak/.test(query) && primaryCourse ? [{ title: `Study the next weak area in ${primaryCourse.title}`, desc: "Uses measured mastery and prerequisites", href: StudySpace.nextBestStep(primaryCourse.id)?.href || globalThis.StudySpaceCatalog.route(primaryCourse), kind: "Action" }] : /study.*mistake/.test(query) && primaryCourse ? [{ title: `Review ${primaryCourse.title} mistakes`, desc: "Grouped by concept", href: `course-mistakes.html?c=${encodeURIComponent(primaryCourse.id)}`, kind: "Action" }] : [];
     const words = query.split(/\s+/).filter(Boolean);
     const hits = index.filter(item => words.every(word => `${item.title} ${item.desc} ${item.kind}`.toLowerCase().includes(word))).slice(0, 8);
     const shown = [...commands, ...hits].slice(0, 8);
@@ -160,18 +161,22 @@ function upgradeHomeSearch() {
 function connectFocusTask() {
   const focus = document.querySelector("#focus");
   if (!focus) return;
-  const task = new URLSearchParams(location.search).get("focusTask") || sessionStorage.getItem("studyspace-focus-task");
+  let task = new URLSearchParams(location.search).get("focusTask") || sessionStorage.getItem("studyspace-focus-task") || "";
   if (task) sessionStorage.setItem("studyspace-focus-task", task.slice(0, 160));
   const heading = focus.querySelector("h3");
   const status = focus.querySelector("#timerStatus");
   const timer = focus.querySelector("#timer");
   const start = focus.querySelector("#timerStart");
   const reset = focus.querySelector("#timerReset");
-  const initialMinutes = Math.min(60, Math.max(1, Number(new URLSearchParams(location.search).get("minutes")) || 25));
+  const taskInput = focus.querySelector("#focusTaskInput");
+  const customInput = focus.querySelector("#customFocusMinutes");
+  let initialMinutes = Math.min(120, Math.max(1, Number(new URLSearchParams(location.search).get("minutes")) || Number(globalThis.StudySpace?.state?.preferences?.focusMinutes) || 25));
   let remaining = initialMinutes * 60;
   let timerId = null;
   const draw = () => { timer.textContent = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`; };
   if (task && heading) heading.textContent = task.slice(0, 80);
+  if (taskInput) { taskInput.value = task; taskInput.oninput = () => { task = taskInput.value.trim().slice(0, 120); if (task) sessionStorage.setItem("studyspace-focus-task", task); }; }
+  if (customInput) customInput.value = initialMinutes;
   if (status) status.textContent = task ? "Your selected task is ready. Start when you are ready to focus." : "Pick one goal. Work until the timer ends.";
   start.onclick = () => {
     if (timerId) {
@@ -201,6 +206,23 @@ function connectFocusTask() {
     remaining = initialMinutes * 60;
     start.textContent = "Start";
     status.textContent = task ? "Task ready. Start when you are ready." : "Pick one goal. Work until the timer ends.";
+    draw();
+  };
+  focus.querySelectorAll("[data-focus-minutes]").forEach(button => button.onclick = () => {
+    if (timerId) return;
+    initialMinutes = Number(button.dataset.focusMinutes);
+    remaining = initialMinutes * 60;
+    focus.querySelectorAll("[data-focus-minutes]").forEach(item => item.classList.toggle("active", item === button));
+    if (customInput) customInput.value = initialMinutes;
+    StudySpace.update(data => { data.preferences.focusMinutes = initialMinutes; });
+    draw();
+  });
+  if (customInput) customInput.onchange = () => {
+    if (timerId) return;
+    initialMinutes = Math.min(120, Math.max(1, Number(customInput.value) || 25));
+    remaining = initialMinutes * 60;
+    focus.querySelectorAll("[data-focus-minutes]").forEach(item => item.classList.remove("active"));
+    StudySpace.update(data => { data.preferences.focusMinutes = initialMinutes; });
     draw();
   };
   draw();
@@ -247,20 +269,24 @@ function renderTeam() {
           <div class="eyebrow">The people behind StudySpace</div>
           <h2 id="founder-title">Built by students, for students.</h2>
         </div>
-        <span class="muted">Class of 2030</span>
+        <span class="muted">Student-led</span>
       </div>
       <div class="team-grid">
         <article class="founder-spotlight">
           <div class="profile-avatar founder-avatar" aria-hidden="true">RS</div>
           <div class="profile-copy">
-            <span class="profile-role">Founder &amp; Creator</span>
+            <span class="profile-role">Founder &amp; President</span>
             <h3>Rajeev Sreenivasachar</h3>
-            <p class="profile-year">Freshman • 9th Grade • Class of 2030</p>
-            <p>Rajeev founded StudySpace because he believes useful ideas should make it easier for people to learn, grow, and help one another. He brings that same student-first energy to creative projects such as Dosa Hut.</p>
+            <p>Rajeev founded StudySpace to make studying clearer, calmer, and more useful for students.</p>
             <div class="profile-values" aria-label="Rajeev's values">
-              <span>Helping others</span><span>Student-led</span><span>Creative builder</span>
+              <span>Student-first</span><span>Product vision</span><span>Learning design</span>
             </div>
+            <a class="link" href="https://t.me/rsreenivasachar27" target="_blank" rel="noopener">Message Rajeev on Telegram →</a>
           </div>
+        </article>
+        <article class="team-member-card">
+          <div class="profile-avatar" aria-hidden="true">RM</div>
+          <div class="profile-copy"><span class="profile-role">Vice President</span><h3>Rudhran Makesh</h3><p>Rudhran helps lead StudySpace as Vice President.</p><a class="link" href="https://t.me/RudhranMakesh" target="_blank" rel="noopener">Message Rudhran on Telegram →</a></div>
         </article>
       </div>
     </section>`);

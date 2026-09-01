@@ -7,7 +7,7 @@
 
   function defaults() {
     return {
-      version: 3,
+      version: 4,
       assessments: [],
       planTasks: [],
       quizAttempts: [],
@@ -17,7 +17,13 @@
       notes: [],
       studySessions: [],
       mistakes: [],
-      preferences: { reducedMotion: false },
+      reviewSchedule: {},
+      diagnostics: [],
+      bookmarks: [],
+      studyQueue: [],
+      recentStudy: [],
+      confidence: {},
+      preferences: { reducedMotion: false, focusMinutes: 25 },
       meta: { createdAt: new Date().toISOString(), migratedLegacy: false }
     };
   }
@@ -32,7 +38,7 @@
     return {
       ...base,
       ...candidate,
-      version: 3,
+      version: 4,
       assessments: Array.isArray(candidate.assessments) ? candidate.assessments : [],
       planTasks: Array.isArray(candidate.planTasks) ? candidate.planTasks : [],
       quizAttempts: Array.isArray(candidate.quizAttempts) ? candidate.quizAttempts.slice(-MAX_ATTEMPTS) : [],
@@ -42,6 +48,12 @@
       notes: Array.isArray(candidate.notes) ? candidate.notes : [],
       studySessions: Array.isArray(candidate.studySessions) ? candidate.studySessions.slice(-100) : [],
       mistakes: Array.isArray(candidate.mistakes) ? candidate.mistakes.slice(-MAX_MISTAKES) : [],
+      reviewSchedule: candidate.reviewSchedule && typeof candidate.reviewSchedule === "object" && !Array.isArray(candidate.reviewSchedule) ? candidate.reviewSchedule : {},
+      diagnostics: Array.isArray(candidate.diagnostics) ? candidate.diagnostics.slice(-60) : [],
+      bookmarks: Array.isArray(candidate.bookmarks) ? candidate.bookmarks.slice(-200) : [],
+      studyQueue: Array.isArray(candidate.studyQueue) ? candidate.studyQueue.slice(-100) : [],
+      recentStudy: Array.isArray(candidate.recentStudy) ? candidate.recentStudy.slice(-100) : [],
+      confidence: candidate.confidence && typeof candidate.confidence === "object" && !Array.isArray(candidate.confidence) ? candidate.confidence : {},
       preferences: { ...base.preferences, ...(candidate.preferences || {}) },
       meta: { ...base.meta, ...(candidate.meta || {}) }
     };
@@ -101,6 +113,30 @@
     });
   }
 
+  function migrateV4() {
+    if (state.meta.migratedV4) return;
+    update(data => {
+      data.reviewSchedule ||= {};
+      data.diagnostics ||= [];
+      data.bookmarks ||= [];
+      data.studyQueue ||= [];
+      data.recentStudy ||= [];
+      data.confidence ||= {};
+      Object.entries(data.flashcardMastery).forEach(([id, item]) => {
+        if (!data.reviewSchedule[`card:${id}`] && item.updatedAt) {
+          const intervalDays = item.status === "mastered" ? 4 : 1;
+          data.reviewSchedule[`card:${id}`] = {
+            id: `card:${id}`, kind: "flashcard", subject: item.subject || "aphg", topic: item.topic || null,
+            itemId: id, intervalDays, ease: item.status === "mastered" ? 2.3 : 1.8,
+            lastReviewedAt: item.updatedAt, dueAt: new Date(new Date(item.updatedAt).getTime() + intervalDays * 86400000).toISOString()
+          };
+        }
+      });
+      data.meta.migratedV4 = true;
+      data.meta.migratedV4At = new Date().toISOString();
+    });
+  }
+
   function save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -117,6 +153,28 @@
     state = normalize(state);
     save();
     return snapshot();
+  }
+
+  function nextInterval(previous, quality) {
+    if (quality <= 1) return { intervalDays: 1, ease: Math.max(1.3, (previous?.ease || 2.2) - .2) };
+    const ease = Math.min(3, (previous?.ease || 2.2) + (quality >= 4 ? .08 : 0));
+    const prior = Math.max(1, previous?.intervalDays || 1);
+    return { intervalDays: Math.max(2, Math.round(prior * ease)), ease };
+  }
+
+  function setReview(data, { id, kind, subject, unit = null, topic = null, itemId, quality = 2 }) {
+    const previous = data.reviewSchedule[id];
+    const timing = nextInterval(previous, quality);
+    const now = new Date();
+    data.reviewSchedule[id] = {
+      id, kind, subject, unit, topic, itemId, ...timing,
+      lastReviewedAt: now.toISOString(), dueAt: new Date(now.getTime() + timing.intervalDays * 86400000).toISOString()
+    };
+  }
+
+  function addRecent(data, item) {
+    const normalized = { id: item.id || `${item.type || "study"}:${item.subject || "general"}:${item.topic || Date.now()}`, ...item, studiedAt: item.studiedAt || new Date().toISOString() };
+    data.recentStudy = [normalized, ...data.recentStudy.filter(existing => existing.id !== normalized.id)].slice(0, 100);
   }
 
   function migrateLegacy() {
@@ -152,6 +210,8 @@
         correct: (current.correct || 0) + (status === "mastered" ? 1 : 0),
         updatedAt: new Date().toISOString()
       };
+      setReview(data, { id: `card:${term.id}`, kind: "flashcard", subject: term.subject || data.flashcardMastery[term.id].subject, unit: term.unit || null, topic: term.topic || null, itemId: term.id, quality: status === "mastered" ? 4 : 1 });
+      addRecent(data, { id: `flashcards:${data.flashcardMastery[term.id].subject}:${term.topic || "general"}`, type: "flashcards", subject: data.flashcardMastery[term.id].subject, unit: term.unit || null, topic: term.topic || null, title: term.term || "Flashcards" });
     });
   }
 
@@ -208,8 +268,10 @@
         else data.mistakes.forEach(item => {
           if (item.subject === normalizedAttempt.subject && !item.laterCorrected && (item.questionId === result.questionId || item.concept === result.concept)) item.laterCorrected = true;
         });
+        setReview(data, { id: `concept:${normalizedAttempt.subject}:${normalizedAttempt.unit}:${result.topic || result.concept || result.questionId}`, kind: "concept", subject: normalizedAttempt.subject, unit: normalizedAttempt.unit, topic: result.topic || null, itemId: result.concept || result.questionId, quality: isCorrect ? 4 : 1 });
       });
       data.mistakes = data.mistakes.slice(-MAX_MISTAKES);
+      addRecent(data, { id: `quiz:${normalizedAttempt.subject}:${normalizedAttempt.unit}:${normalizedAttempt.topic || "mixed"}`, type: "quiz", subject: normalizedAttempt.subject, unit: normalizedAttempt.unit, topic: normalizedAttempt.topic, title: `${normalizedAttempt.mode} quiz`, score: normalizedAttempt.percentage });
     });
   }
 
@@ -238,9 +300,13 @@
       weighted += (mastered / cardSeen) * 0.3;
       weight += 0.3;
     }
-    const score = Math.round((weighted / weight) * 100);
+    const timestamps = [...questionRecords.map(item => item.lastAnsweredAt), ...cardRecords.map(item => item.updatedAt)].filter(Boolean).map(value => new Date(value).getTime()).filter(Number.isFinite);
+    const newest = timestamps.length ? Math.max(...timestamps) : Date.now();
+    const ageDays = Math.max(0, (Date.now() - newest) / 86400000);
+    const decay = ageDays <= 14 ? 1 : Math.max(.78, 1 - (ageDays - 14) * .004);
+    const score = Math.round((weighted / weight) * 100 * decay);
     const label = subject !== "aphg" ? (score >= 90 ? "Mastered" : score >= 80 ? "Strong" : score >= 60 ? "Developing" : "Learning") : (score >= 80 ? "Strong" : score >= 60 ? "Developing" : "Weak");
-    return { topic: topicId, score, label, evidence, quizTotal, cardSeen };
+    return { topic: topicId, score, label, evidence, quizTotal, cardSeen, ageDays: Math.round(ageDays), needsRefresh: ageDays >= 21 };
   }
 
   function conceptMastery(subject, concept) {
@@ -274,6 +340,110 @@
 
   function weakTopics(unit = globalThis.APHG_UNIT1) {
     return allMastery(unit).filter(item => item.score !== null && item.score < 70).sort((a, b) => a.score - b.score);
+  }
+
+  function dueReviews(subject = null, limit = 20) {
+    const now = Date.now();
+    return Object.values(state.reviewSchedule).filter(item => (!subject || item.subject === subject) && new Date(item.dueAt).getTime() <= now).sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt))).slice(0, limit);
+  }
+
+  function findLearningCourse(courseId) { return globalThis.STUDYSPACE_LEARNING?.course(courseId) || null; }
+
+  function lessonHref(course, unit, lesson) {
+    const q = encodeURIComponent;
+    if (course.id === "aphg" && unit.id === "1") return `aphg-topic.html?t=${q(lesson.topic)}`;
+    if (course.id === "algebra2" && unit.id === "class-1") return `algebra2-section.html?s=${q(lesson.topic)}`;
+    if (course.id === "biology" && unit.id === "1") return `biology-topic.html?t=${q(lesson.topic)}`;
+    if (course.id === "csit-essentials" && unit.id === "1") return "csit-module1.html";
+    return `course-lesson.html?c=${q(course.id)}&u=${q(unit.id)}&l=${q(lesson.topic)}`;
+  }
+
+  function nextBestStep(courseId) {
+    const course = findLearningCourse(courseId);
+    if (!course) return null;
+    const all = course.units.flatMap(unit => unit.lessons.map(lesson => {
+      const masteryUnit = { id: `${course.id}-${unit.id}`, subjectKey: course.id, topics: unit.lessons.map(item => ({ id: item.topic, title: item.title })), termsForTopic: topicId => {
+        const target = unit.lessons.find(item => item.topic === topicId);
+        return (target?.vocabulary || []).map(card => ({ id: `${course.id}-${target.topic}-${String(card.term).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}` }));
+      } };
+      return { course, unit, lesson, mastery: topicMastery(lesson.topic, masteryUnit) };
+    }));
+    const due = dueReviews(courseId, 1)[0];
+    if (due) {
+      const match = all.find(item => item.unit.id === due.unit && item.lesson.topic === due.topic) || all.find(item => item.lesson.topic === due.topic);
+      if (match) return { type: "review", reason: "Due for spaced review", title: match.lesson.title, href: lessonHref(course, match.unit, match.lesson), ...match };
+    }
+    const weak = all.filter(item => item.mastery.score !== null && item.mastery.score < 70).sort((a, b) => a.mastery.score - b.mastery.score)[0];
+    if (weak) {
+      const prerequisite = (weak.lesson.dependsOn || []).map(id => all.find(item => item.lesson.topic === id)).find(item => item && (item.mastery.score === null || item.mastery.score < 70));
+      const target = prerequisite || weak;
+      return { type: prerequisite ? "prerequisite" : "weak-area", reason: prerequisite ? `Build the prerequisite for ${weak.lesson.title}` : `Strengthen a ${weak.mastery.score}% area`, title: target.lesson.title, href: lessonHref(course, target.unit, target.lesson), ...target };
+    }
+    const started = all.filter(item => item.mastery.evidence > 0).sort((a, b) => (a.mastery.ageDays || 0) - (b.mastery.ageDays || 0));
+    const firstNew = all.find(item => !item.mastery.evidence);
+    const target = firstNew || started[0] || all[0];
+    return target ? { type: firstNew ? "continue" : "refresh", reason: firstNew ? "Continue the course sequence" : "Refresh a completed concept", title: target.lesson.title, href: lessonHref(course, target.unit, target.lesson), ...target } : null;
+  }
+
+  function quickStudy(courseId, minutes = 10) {
+    const next = nextBestStep(courseId);
+    if (!next) return null;
+    return { ...next, minutes: Math.max(5, Math.min(20, Number(minutes) || 10)), actions: ["Recall the idea before opening notes", "Answer two or three targeted questions", "Explain one correction in your own words"] };
+  }
+
+  function weeklyReview() {
+    const since = Date.now() - 7 * 86400000;
+    const sessions = state.studySessions.filter(item => new Date(item.completedAt || item.studiedAt).getTime() >= since);
+    const attempts = state.quizAttempts.filter(item => new Date(item.createdAt).getTime() >= since);
+    const corrected = state.mistakes.filter(item => item.laterCorrected && new Date(item.timestamp).getTime() >= since).length;
+    const totalQuestions = attempts.reduce((sum, item) => sum + (item.total || 0), 0), correct = attempts.reduce((sum, item) => sum + (item.score || 0), 0);
+    return { sessions: sessions.length, minutes: sessions.reduce((sum, item) => sum + (Number(item.minutes) || 0), 0), questions: totalQuestions, accuracy: totalQuestions ? Math.round(correct / totalQuestions * 100) : null, corrected, due: dueReviews().length };
+  }
+
+  function recordDiagnostic(input) {
+    if (!input?.subject || !Array.isArray(input.results)) return null;
+    const item = { id: input.id || `diagnostic-${Date.now()}`, subject: String(input.subject), unit: String(input.unit || ""), score: Number(input.score) || 0, total: Number(input.total) || input.results.length, results: input.results.slice(0, 30), createdAt: new Date().toISOString() };
+    update(data => {
+      data.diagnostics.push(item);
+      data.diagnostics = data.diagnostics.slice(-60);
+      item.results.forEach(result => setReview(data, { id: `concept:${item.subject}:${item.unit}:${result.topic || result.questionId}`, kind: "concept", subject: item.subject, unit: item.unit, topic: result.topic || null, itemId: result.title || result.questionId, quality: result.correct ? 3 : 1 }));
+      addRecent(data, { id: `diagnostic:${item.subject}:${item.unit}`, type: "diagnostic", subject: item.subject, unit: item.unit, title: "Unit diagnostic", score: item.total ? Math.round(item.score / item.total * 100) : 0 });
+    });
+    return item;
+  }
+
+  function setConfidence(key, value) {
+    const level = Math.max(1, Math.min(5, Number(value) || 1));
+    update(data => { data.confidence[String(key)] = { value: level, updatedAt: new Date().toISOString() }; });
+  }
+
+  function toggleBookmark(item) {
+    if (!item?.id) return false;
+    let added = false;
+    update(data => { const index = data.bookmarks.findIndex(entry => entry.id === item.id); if (index >= 0) data.bookmarks.splice(index, 1); else { data.bookmarks.unshift({ ...item, savedAt: new Date().toISOString() }); added = true; } });
+    return added;
+  }
+
+  function toggleQueue(item) {
+    if (!item?.id) return false;
+    let added = false;
+    update(data => { const index = data.studyQueue.findIndex(entry => entry.id === item.id); if (index >= 0) data.studyQueue.splice(index, 1); else { data.studyQueue.unshift({ ...item, queuedAt: new Date().toISOString() }); added = true; } });
+    return added;
+  }
+
+  function exportBackup() {
+    return JSON.stringify({ schema: "studyspace-backup", version: 1, exportedAt: new Date().toISOString(), appState: snapshot(), courseSetup: safeParse(localStorage.getItem("studyspace-course-setup-v2"), null), chats: Object.fromEntries(Object.keys(localStorage).filter(key => key.startsWith("studyspace-chat")).map(key => [key, safeParse(localStorage.getItem(key), null)])) }, null, 2);
+  }
+
+  function importBackup(value) {
+    const parsed = typeof value === "string" ? safeParse(value, null) : value;
+    if (!parsed || parsed.schema !== "studyspace-backup" || parsed.version !== 1 || !parsed.appState || typeof parsed.appState !== "object") throw new Error("This is not a valid StudySpace backup file.");
+    state = normalize(parsed.appState);
+    state.meta.importedAt = new Date().toISOString();
+    save();
+    if (parsed.courseSetup && typeof parsed.courseSetup === "object") localStorage.setItem("studyspace-course-setup-v2", JSON.stringify(parsed.courseSetup));
+    if (parsed.chats && typeof parsed.chats === "object") Object.entries(parsed.chats).forEach(([key, item]) => { if (key.startsWith("studyspace-chat") && item != null) localStorage.setItem(key, JSON.stringify(item)); });
+    return snapshot();
   }
 
   function addAssessment(input) {
@@ -318,22 +488,31 @@
 
   function generatePlan(assessment, unit = globalThis.APHG_UNIT1) {
     const days = Math.max(0, daysUntil(assessment.date) ?? 0);
-    const weak = weakTopics(unit).map(item => item.topic);
-    const requested = String(assessment.topics || "").match(/1\.[1-7]/g) || unit?.topics?.map(topic => topic.id) || [];
-    const priority = [...new Set([...weak.filter(topic => requested.includes(topic)), ...requested])];
-    const sessions = Math.min(Math.max(days + 1, 1), 4);
-    const labels = days === 0 ? ["Today"] : days === 1 ? ["Today", "Tomorrow"] : ["Today", "Next session", "Day before", "Night before"];
+    const allCourses = Object.values(globalThis.STUDYSPACE_COURSES?.courses || {});
+    const course = allCourses.find(item => item.id === assessment.subject || item.title === assessment.subject) || null;
+    const learningCourse = course ? findLearningCourse(course.id) : null;
+    const requestedIds = String(assessment.topics || "").match(/[A-Za-z]*\d+(?:\.\d+)?/g) || [];
+    const candidates = learningCourse ? learningCourse.units.flatMap(courseUnit => courseUnit.lessons.map(lesson => ({ courseUnit, lesson }))) : [];
+    const scoped = requestedIds.length ? candidates.filter(item => requestedIds.some(id => item.lesson.topic === id || item.courseUnit.id === id)) : candidates;
+    const measured = scoped.map(item => ({ ...item, mastery: conceptMastery(course?.id, item.lesson.title) })).sort((a, b) => (a.mastery.score ?? 101) - (b.mastery.score ?? 101));
+    const priority = measured.length ? measured : (unit?.topics || []).map(topicItem => ({ lesson: { topic: topicItem.id, title: topicItem.title }, mastery: topicMastery(topicItem.id, unit) }));
+    const sessions = Math.min(Math.max(days + 1, 1), 7);
+    const labels = days === 0 ? ["Today"] : days === 1 ? ["Today", "Tomorrow"] : ["Today", "Next session", "Midway check", "Two days before", "Day before", "Night before", "Test day warm-up"];
     const tasks = [];
     for (let index = 0; index < sessions; index += 1) {
-      const topic = priority[index % Math.max(priority.length, 1)] || "Unit 1";
+      const target = priority[index % Math.max(priority.length, 1)] || { lesson: { topic: "", title: assessment.topics || "Assessment topics" } };
       const isLast = index === sessions - 1;
+      const minutes = days <= 1 ? (isLast ? 20 : 25) : index < 2 ? 15 : 20;
       tasks.push({
         id: `plan-${assessment.id}-${index}`,
         assessmentId: assessment.id,
         day: labels[Math.min(index, labels.length - 1)],
-        minutes: isLast ? 20 : 15,
-        title: isLast ? "Final mixed review" : `Review Topic ${topic}`,
-        actions: isLast ? ["Study still-learning cards", "Take a 20-question practice quiz", "Review explanations"] : [`Review Topic ${topic}`, "Study 10–15 flashcards", "Take a quick targeted quiz"],
+        minutes,
+        subject: course?.id || assessment.subject,
+        unit: target.courseUnit?.id || null,
+        topic: target.lesson?.topic || null,
+        title: isLast ? "Final mixed retrieval" : `${target.mastery?.score !== null && target.mastery?.score !== undefined && target.mastery.score < 70 ? "Strengthen" : "Study"} ${target.lesson?.title || assessment.topics || "assessment topics"}`,
+        actions: isLast ? ["Answer a short mixed set without notes", "Check every miss and explain the correction", "Stop with time to sleep and reset"] : [`Recall the core idea before rereading`, "Practice 3–5 targeted questions", "Record one mistake or remaining question"],
         complete: state.planTasks.find(task => task.id === `plan-${assessment.id}-${index}`)?.complete || false
       });
     }
@@ -464,8 +643,22 @@
     }
   }
 
+  function setupFeedbackAction() {
+    if (location.pathname.endsWith("feedback.html") || document.querySelector("[data-page-feedback]")) return;
+    const main = document.querySelector("main");
+    if (!main) return;
+    const link = document.createElement("a");
+    const context = new URLSearchParams({ from: location.pathname, path: `${location.pathname}${location.search}`, title: document.title, course: document.body.dataset.subject || "", topic: document.body.dataset.topic || "" });
+    link.href = `feedback.html?${context}`;
+    link.className = "page-feedback-link";
+    link.dataset.pageFeedback = "true";
+    link.textContent = "Report an issue on this page";
+    main.appendChild(link);
+  }
+
   migrateV2();
   migrateV3();
+  migrateV4();
   migrateLegacy();
   globalThis.StudySpace = {
     storageKey: STORAGE_KEY,
@@ -477,6 +670,10 @@
     topicMastery,
     allMastery,
     weakTopics,
+    dueReviews,
+    nextBestStep,
+    quickStudy,
+    weeklyReview,
     conceptMastery,
     mistakesFor,
     markMistakeReviewed,
@@ -487,13 +684,19 @@
     countdown,
     generatePlan,
     setTaskComplete,
+    recordDiagnostic,
+    setConfidence,
+    toggleBookmark,
+    toggleQueue,
+    exportBackup,
+    importBackup,
     saveStudySet,
     openAI,
     studyThis,
     escapeHtml
   };
 
-  const initialize = () => { setupSelectionActions(); setupPageStudyActions(); };
+  const initialize = () => { setupSelectionActions(); setupPageStudyActions(); setupFeedbackAction(); };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initialize);
   else initialize();
 })();

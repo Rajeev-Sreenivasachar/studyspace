@@ -7,6 +7,14 @@
   let imageFile = null;
   const escape = value => app.escapeHtml(value);
 
+  function populateSubjects() {
+    const select = document.querySelector("#importSubject");
+    const setup = (() => { try { return JSON.parse(localStorage.getItem("studyspace-course-setup-v2")); } catch { return null; } })();
+    const selected = new Set(setup?.selectedCourses || []);
+    const courses = (globalThis.STUDYSPACE_COURSES?.list?.() || []).filter(course => !selected.size || selected.has(course.id));
+    select.innerHTML = `${courses.map(course => `<option value="${escape(course.id)}">${escape(course.title)}</option>`).join("")}<option value="General">General</option>`;
+  }
+
   fileInput.onchange = () => {
     const file = fileInput.files?.[0];
     imageFile = null;
@@ -51,22 +59,20 @@
     document.querySelectorAll("[data-delete-set]").forEach(button => button.onclick = () => app.update(data => { data.studySets = data.studySets.filter(item => item.id !== button.dataset.deleteSet); }));
   }
 
-  function renderNotes() {
-    const notes = app.state.notes.slice().reverse();
-    document.querySelector("#savedNotes").innerHTML = notes.length ? notes.map(note => `<article class="saved-note"><h3>${escape(note.title)}</h3><p>${escape(note.text.slice(0, 240))}${note.text.length > 240 ? "…" : ""}</p><div><button type="button" data-note-action="Summarize" data-note="${note.id}">Summarize</button><button type="button" data-note-action="Clean Up" data-note="${note.id}">Clean Up</button><button type="button" data-note-action="Explain" data-note="${note.id}">Explain</button><button type="button" data-note-action="Make Flashcards" data-note="${note.id}">Flashcards</button><button type="button" data-note-action="Quiz Me" data-note="${note.id}">Quiz Me</button></div></article>`).join("") : `<p class="muted">Saved notes will appear here.</p>`;
-    document.querySelectorAll("[data-note-action]").forEach(button => button.onclick = () => {
-      const note = app.state.notes.find(item => item.id === button.dataset.note);
-      if (note) app.openAI(`${button.dataset.noteAction} these student notes. Preserve the ORIGINAL NOTES and provide any changes as a separate suggestion:\n\n${note.text.slice(0, 2600)}`);
-    });
-  }
-
-  document.querySelector("#noteForm").onsubmit = event => {
-    event.preventDefault();
-    const note = { id: `note-${Date.now()}`, title: document.querySelector("#noteTitle").value, text: document.querySelector("#noteText").value, createdAt: new Date().toISOString() };
-    app.update(data => data.notes.push(note));
-    event.target.reset();
+  document.querySelector("#exportBackup").onclick = () => {
+    const blob = new Blob([app.exportBackup()], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob); link.download = `studyspace-backup-${new Date().toISOString().slice(0,10)}.json`; link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    document.querySelector("#backupMessage").textContent = "Backup downloaded. Keep it private because it contains your local study data.";
   };
-  window.addEventListener("studyspace:data", () => { renderSets(); renderNotes(); });
+  document.querySelector("#importBackup").onchange = event => {
+    const file = event.target.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => { try { app.importBackup(String(reader.result || "")); document.querySelector("#backupMessage").textContent = "Backup restored. Reloading…"; setTimeout(() => location.reload(), 500); } catch (error) { document.querySelector("#backupMessage").textContent = error.message; } };
+    reader.readAsText(file);
+  };
+  window.addEventListener("studyspace:data", renderSets);
+  populateSubjects();
   renderSets();
-  renderNotes();
 })();

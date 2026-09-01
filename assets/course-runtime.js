@@ -16,6 +16,7 @@
   const lessonHref = (unit, lesson) => course.id === "aphg" && unit.id === "1" ? `aphg-topic.html?t=${q(lesson.topic)}` : course.id === "algebra2" && unit.id === "class-1" ? `algebra2-section.html?s=${q(lesson.topic)}` : course.id === "biology" && unit.id === "1" ? `biology-topic.html?t=${q(lesson.topic)}` : course.id === "csit-essentials" && unit.id === "1" ? "csit-module1.html" : `course-lesson.html?c=${q(course.id)}&u=${q(unit.id)}&l=${q(lesson.topic)}`;
   const toolHref = (name, unit = null) => `course-${name}.html?c=${q(course.id)}${unit ? `&u=${q(unit.id)}` : ""}`;
   const badge = source => `<span class="source-chip ${esc(source.type)}">${source.type === "school-catalog" ? "School offering evidence" : source.type === "official-framework" ? "Official framework" : source.type === "teacher-class-material" ? "Class material" : "StudySpace original"}</span>`;
+  const contentStatusLabel = status => ({ outline: "Course outline", "framework-aligned": "Framework-aligned", "full-lessons": "Full lessons", "class-aligned": "Class-aligned", "teacher-material-supported": "Teacher-material supported" }[status] || "Framework-aligned");
   const flashId = (lesson, term) => `${course.id}-${lesson.topic}-${String(term).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
 
   if (!course) {
@@ -68,26 +69,28 @@
 
   function toolBar(unit = null) {
     return `<div class="course-tools" aria-label="Study tools">
-      <a href="${toolHref("flashcards", unit)}">🃏 Flashcards</a><a href="${toolHref("quiz", unit)}">⚡ Practice quiz</a><a href="${toolHref("mistakes")}">↻ My mistakes</a>
-      <button type="button" data-course-ai>✦ Ask StudySpace AI</button>
+      <a href="${toolHref("flashcards", unit)}">Flashcards</a><a href="${toolHref("quiz", unit)}">Practice quiz</a><a href="${toolHref("mistakes")}">My mistakes</a>
+      ${unit ? `<button type="button" data-unit-diagnostic>Unit diagnostic</button>` : ""}<button type="button" data-course-ai>Ask StudySpace AI</button>
     </div>`;
   }
 
   function bindAI(context) {
     document.querySelectorAll("[data-course-ai]").forEach(button => button.onclick = () => app.openAI(`Tutor Mode for ${course.title}. ${context} Use the visible StudySpace lesson first, keep official-framework scope separate from original explanation, teach one step at a time, then ask one question.`, false));
+    document.querySelectorAll("[data-unit-diagnostic]").forEach(button => button.onclick = () => renderDiagnostic(currentUnit));
   }
 
   function renderCourse() {
     const progress = courseProgress();
     const mistakes = app.mistakesFor(course.id).slice(0, 3);
-    const next = course.units.flatMap(unit => unitMastery(unit).map(item => ({ ...item, unit }))).find(item => item.evidence < 3) || { unit: course.units[0], lesson: course.units[0].lessons[0] };
+    const recommendation = app.nextBestStep?.(course.id);
+    const next = recommendation || course.units.flatMap(unit => unitMastery(unit).map(item => ({ ...item, unit }))).find(item => item.evidence < 3) || { unit: course.units[0], lesson: course.units[0].lessons[0] };
     root.innerHTML = `${breadcrumbs([{ label: "Subjects", href: "index.html#subjects" }, { label: course.title }])}
-      <header class="course-hero"><div><div class="eyebrow">${esc(course.courseCode)} · Complete course</div><h1>${course.icon} ${esc(course.title)}</h1><p class="lead">${esc(course.summary)}</p>${course.frameworkStatus === "needs-class-identification" ? `<p class="source-notice"><strong>Exact course mapping still needed:</strong> the lessons below are original computing foundations. Add the course code or syllabus to attach the precise Florida benchmarks and classroom order.</p>` : ""}<div class="actions"><a class="btn primary" href="${lessonHref(next.unit, next.lesson)}">Continue learning →</a><a class="btn" href="${toolHref("quiz")}">Quick review</a></div></div>
+      <header class="course-hero"><div><div class="eyebrow">${esc(course.courseCode)} · ${contentStatusLabel(course.units.some(item => item.contentStatus === "class-aligned") ? "class-aligned" : "framework-aligned")}</div><h1>${course.icon} ${esc(course.title)}</h1><p class="lead">${esc(course.summary)}</p>${course.frameworkStatus === "needs-class-identification" ? `<p class="source-notice"><strong>Exact course mapping still needed:</strong> the lessons below are original computing foundations. Add the course code or syllabus to attach the precise Florida benchmarks and classroom order.</p>` : ""}${recommendation ? `<p class="next-step-note"><strong>Next best step:</strong> ${esc(recommendation.title)} · ${esc(recommendation.reason)}</p>` : ""}<div class="actions"><a class="btn primary" href="${recommendation?.href || lessonHref(next.unit, next.lesson)}">Continue learning →</a><a class="btn" href="${toolHref("quiz")}">Quick review</a></div></div>
       <aside class="course-progress-card"><strong>${progress.score === null ? "—" : `${progress.score}%`}</strong><span>measured mastery</span><p>${progress.started} of ${progress.total} lessons have activity. Scores appear only after enough evidence.</p><div class="progress-track"><i style="width:${Math.round(progress.started / progress.total * 100)}%"></i></div></aside></header>
       ${toolBar()}
       <section><div class="section-head"><div><h2>Course organization</h2><p>Every unit opens to instruction, vocabulary, practice, flashcards, and quizzes.</p></div><span class="badge">${course.units.length} units / strands</span></div><div class="full-unit-grid">${course.units.map(unit => {
         const records = unitMastery(unit), measured = records.filter(item => item.score !== null), score = measured.length ? Math.round(measured.reduce((n, item) => n + item.score, 0) / measured.length) : null;
-        return `<a class="full-unit-card" href="${unitHref(unit)}"><div class="full-unit-top"><span>${esc(unit.id)}</span><em>${score === null ? "Not measured" : `${score}% mastery`}</em></div><h3>${esc(unit.title)}</h3><p>${esc(unit.summary)}</p><div class="lesson-count">${unit.lessons.length} complete lessons <b>Open →</b></div></a>`;
+        return `<a class="full-unit-card" href="${unitHref(unit)}"><div class="full-unit-top"><span>${esc(unit.id)}</span><em>${score === null ? "Not measured" : `${score}% mastery`}</em></div><h3>${esc(unit.title)}</h3><p>${esc(unit.summary)}</p><div class="unit-card-meta"><span class="content-status">${contentStatusLabel(unit.contentStatus)}</span></div><div class="lesson-count">${unit.lessons.length} lesson${unit.lessons.length === 1 ? "" : "s"} <b>Open →</b></div></a>`;
       }).join("")}</div></section>
       <section class="course-insights"><article class="panel"><h2>Weak areas</h2>${progress.weak.length ? progress.weak.slice(0, 4).map(item => `<a class="insight-row" href="${lessonHref(course.units.find(unit => unit.lessons.includes(item.lesson)), item.lesson)}"><span>${esc(item.lesson.topic)} ${esc(item.lesson.title)}</span><b>${item.score}%</b></a>`).join("") : `<p class="muted">No measured weak areas yet. Complete a few flashcards or quiz questions to build evidence.</p>`}</article><article class="panel"><h2>Recent mistakes</h2>${mistakes.length ? mistakes.map(item => `<div class="insight-row"><span>${esc(item.concept)}</span><b>${item.laterCorrected ? "Corrected" : "Review"}</b></div>`).join("") : `<p class="muted">Missed questions will appear here with explanations and retry options.</p>`}<a class="link" href="${toolHref("mistakes")}">Open mistake review →</a></article></section>
       <section><div class="section-head"><div><h2>Source registry</h2><p>Official scope, class material, and original StudySpace teaching stay distinguishable.</p></div></div><div class="framework-source-grid">${course.sources.map(source => `<article class="framework-source ${esc(source.type)}"><div>${badge(source)}<strong>${esc(source.label)}</strong></div><p>${esc(source.scope)}</p>${source.url ? `<a class="link" href="${esc(source.url)}" target="_blank" rel="noopener">Open source ↗</a>` : `<span class="muted">${source.status === "needed" ? "Not supplied yet" : "Internal source record"}</span>`}</article>`).join("")}</div></section>`;
@@ -102,7 +105,7 @@
     const allVocab = [...new Map(unit.lessons.flatMap(lesson => lesson.vocabulary).map(item => [item.term.toLowerCase(), item])).values()];
     const unitIndex = course.units.indexOf(unit), previous = course.units[unitIndex - 1], next = course.units[unitIndex + 1];
     root.innerHTML = `${breadcrumbs([{ label: course.title, href: `subject.html?s=${q(course.id)}` }, { label: `${unit.id} ${unit.title}` }])}
-      <header class="page-head course-unit-head"><div class="eyebrow">${esc(course.title)} · Unit ${esc(unit.id)}</div><h1>${esc(unit.title)}</h1><p class="lead">${esc(unit.summary)}</p><div class="actions"><a class="btn primary" href="${lessonHref(unit, records.find(item => item.evidence < 3)?.lesson || unit.lessons[0])}">Start / continue unit</a><a class="btn" href="#lessons">Browse lessons</a></div></header>
+      <header class="page-head course-unit-head"><div class="eyebrow">${esc(course.title)} · ${contentStatusLabel(unit.contentStatus)}</div><h1>${esc(unit.title)}</h1><p class="lead">${esc(unit.summary)}</p><div class="actions"><a class="btn primary" href="${lessonHref(unit, records.find(item => item.evidence < 3)?.lesson || unit.lessons[0])}">Start / continue unit</a><button class="btn" type="button" data-unit-diagnostic>Take diagnostic</button><a class="btn" href="#lessons">Browse lessons</a></div></header>
       ${toolBar(unit)}
       <section class="unit-overview-grid"><article class="panel"><div class="eyebrow">Why it matters</div><h2>Build connected understanding</h2><p>${esc(unit.summary)} These ideas matter because later tasks ask you to transfer them to unfamiliar evidence, not simply recognize definitions.</p><h3>Big ideas</h3><ul>${unit.lessons.slice(0, 4).map(lesson => `<li><strong>${esc(lesson.title)}:</strong> ${esc(lesson.sections[0].body)}</li>`).join("")}</ul></article><aside class="panel unit-progress"><strong>${started}/${unit.lessons.length}</strong><span>lessons started</span><div class="progress-track"><i style="width:${Math.round(started / unit.lessons.length * 100)}%"></i></div><p>Mastery is built from saved quiz and flashcard evidence.</p></aside></section>
       <section><div class="section-head"><div><h2>Learning objectives</h2><p>By the end of this unit, you should be able to:</p></div></div><div class="objective-grid">${course.skills.slice(0, 5).map(skill => `<article><span>✓</span><p>${esc(skill)} while using the concepts in ${esc(unit.title)}.</p></article>`).join("")}</div></section>
@@ -124,18 +127,71 @@
     return `<div class="concept-visual" data-concept-visual><div class="visual-flow">${labels.map((label, i) => `<button type="button" data-visual-step="${i}"><b>${i + 1}</b>${esc(label)}</button>`).join("<i>→</i>")}</div><p data-visual-output>Select a stage to see how it supports this lesson.</p></div>`;
   }
 
+  function randomizeQuestion(question) {
+    const choices = question.choices.map((choice, index) => ({ choice, correct: index === question.answer }));
+    for (let index = choices.length - 1; index > 0; index -= 1) { const swap = Math.floor(Math.random() * (index + 1)); [choices[index], choices[swap]] = [choices[swap], choices[index]]; }
+    return { ...question, choices: choices.map(item => item.choice), answer: choices.findIndex(item => item.correct) };
+  }
+
+  function renderDiagnostic(unit) {
+    document.querySelector("#courseDiagnostic")?.remove();
+    const questions = unit.lessons.slice(0, 6).map(lesson => ({ lesson, question: randomizeQuestion(lesson.questions[Math.floor(Math.random() * lesson.questions.length)]) }));
+    let index = 0, results = [];
+    const modal = document.createElement("div");
+    modal.id = "courseDiagnostic";
+    modal.className = "study-modal-backdrop";
+    modal.innerHTML = `<section class="study-modal diagnostic-modal" role="dialog" aria-modal="true" aria-labelledby="diagnosticTitle"><div class="study-modal-head"><div><div class="eyebrow">${esc(course.title)}</div><h2 id="diagnosticTitle">${esc(unit.title)} diagnostic</h2></div><button type="button" data-diagnostic-close aria-label="Close diagnostic">×</button></div><p class="muted">${questions.length} short questions find a useful starting point. This is not a grade.</p><div data-diagnostic-body></div></section>`;
+    document.body.appendChild(modal);
+    const body = modal.querySelector("[data-diagnostic-body]");
+    const close = () => modal.remove();
+    modal.querySelector("[data-diagnostic-close]").onclick = close;
+    const draw = () => {
+      if (index >= questions.length) {
+        const score = results.filter(item => item.correct).length;
+        app.recordDiagnostic({ subject: course.id, unit: unit.id, score, total: results.length, results });
+        const needs = results.filter(item => !item.correct).map(item => item.title);
+        body.innerHTML = `<div class="diagnostic-result"><strong>${score}/${results.length}</strong><h3>Your starting point</h3><p>${needs.length ? `Start with ${esc(needs.slice(0, 2).join(" and "))}.` : "Your diagnostic was strong. Continue with mixed practice or the next lesson."}</p><div class="actions"><a class="btn primary" href="${needs.length ? lessonHref(unit, unit.lessons.find(item => item.title === needs[0])) : toolHref("quiz", unit)}">${needs.length ? "Study first weak area" : "Take mixed practice"}</a><button class="btn" type="button" data-finish-close>Close</button></div></div>`;
+        body.querySelector("[data-finish-close]").onclick = close;
+        return;
+      }
+      const { lesson, question } = questions[index];
+      body.innerHTML = `<div class="quiz-top"><span>${index + 1} of ${questions.length}</span><span>${esc(lesson.topic)} ${esc(lesson.title)}</span></div><h3>${esc(question.prompt)}</h3><div class="choices">${question.choices.map((choice, choiceIndex) => `<button class="btn choice" type="button" data-diagnostic-answer="${choiceIndex}">${esc(choice)}</button>`).join("")}</div><p class="feedback" aria-live="polite"></p><button class="btn primary" type="button" data-diagnostic-next hidden>Next</button>`;
+      body.querySelectorAll("[data-diagnostic-answer]").forEach(button => button.onclick = () => {
+        if (body.dataset.answered === String(index)) return;
+        body.dataset.answered = String(index);
+        const picked = Number(button.dataset.diagnosticAnswer), correct = picked === question.answer;
+        results.push({ topic: lesson.topic, title: lesson.title, questionId: question.id, correct, picked: question.choices[picked], answer: question.choices[question.answer] });
+        body.querySelectorAll("[data-diagnostic-answer]").forEach((choice, choiceIndex) => { if (choiceIndex === question.answer) choice.classList.add("correct"); else if (choiceIndex === picked) choice.classList.add("wrong"); choice.disabled = true; });
+        body.querySelector(".feedback").textContent = correct ? "Correct." : `Review this concept: ${question.explanation}`;
+        body.querySelector("[data-diagnostic-next]").hidden = false;
+      });
+      body.querySelector("[data-diagnostic-next]").onclick = () => { index += 1; draw(); };
+    };
+    draw();
+  }
+
+  function teachFromZero(unit, lesson) {
+    const prerequisiteIds = lesson.dependsOn || [];
+    const prerequisites = prerequisiteIds.map(id => course.units.flatMap(item => item.lessons).find(item => item.topic === id)).filter(Boolean);
+    app.studyThis({
+      title: `Teach me from zero: ${lesson.title}`,
+      source: `${course.title} · ${contentStatusLabel(lesson.contentStatus)}`,
+      text: `${prerequisites.length ? `Prerequisites to establish first: ${prerequisites.map(item => item.title).join(", ")}. ` : "No earlier prerequisite is required. "}Core explanation: ${lesson.sections.map(item => `${item.title}: ${item.body}`).join(" ")} Worked application: ${lesson.example} Common mistake: ${lesson.misconception}`
+    });
+  }
+
   function renderLesson() {
     const unit = currentUnit, lesson = currentLesson;
     const idx = unit.lessons.indexOf(lesson), prev = unit.lessons[idx - 1], next = unit.lessons[idx + 1];
     const mastery = app.topicMastery(lesson.topic, masteryUnit(unit));
     root.innerHTML = `${breadcrumbs([{ label: course.title, href: `subject.html?s=${q(course.id)}` }, { label: unit.title, href: unitHref(unit) }, { label: `${lesson.topic} ${lesson.title}` }])}
-      <header class="page-head lesson-hero"><div class="eyebrow">${esc(course.title)} · ${esc(unit.id)} · Lesson ${esc(lesson.topic)}</div><h1>${esc(lesson.title)}</h1><p class="lead">${esc(lesson.overview)}</p><div class="lesson-status"><span class="mastery-chip ${String(mastery.label).toLowerCase().replace(" ", "-")}">${mastery.score === null ? esc(mastery.label) : `${mastery.score}% mastery`}</span><span>${mastery.evidence} saved evidence point${mastery.evidence === 1 ? "" : "s"}</span></div></header>
+      <header class="page-head lesson-hero"><div class="eyebrow">${esc(course.title)} · ${contentStatusLabel(lesson.contentStatus)}</div><h1>${esc(lesson.topic)} ${esc(lesson.title)}</h1><p class="lead">${esc(lesson.overview)}</p><div class="lesson-status"><span class="mastery-chip ${String(mastery.label).toLowerCase().replace(" ", "-")}">${mastery.score === null ? esc(mastery.label) : `${mastery.score}% mastery`}</span><span>${mastery.evidence} saved evidence point${mastery.evidence === 1 ? "" : "s"}</span>${mastery.needsRefresh ? `<span class="review-due">Refresh due</span>` : ""}</div><div class="actions"><button class="btn primary" type="button" data-teach-zero>Teach me from zero</button><button class="btn" type="button" data-bookmark-lesson>Save lesson</button><button class="btn" type="button" data-queue-lesson>Add to study queue</button></div></header>
       <nav class="lesson-tabs" aria-label="Lesson sections"><a href="#learn">Learn</a><a href="#example">Example</a><a href="#vocabulary">Vocabulary</a><a href="#practice">Practice</a><a href="#check">Mastery check</a></nav>
       <section id="learn"><div class="section-head"><div><h2>Learn</h2><p>Read for the explanation, then use the model below.</p></div></div><div class="learning-objectives"><strong>Learning targets</strong><ul>${lesson.objectives.map(item => `<li>${esc(item)}</li>`).join("")}</ul></div><div class="teaching-grid">${lesson.sections.map((section, i) => `<article class="teaching-card"><span>0${i + 1}</span><h3>${esc(section.title)}</h3><p>${esc(section.body)}</p></article>`).join("")}</div>${visualMarkup(lesson)}</section>
       <section id="example" class="worked-example"><div><div class="eyebrow">Original StudySpace example</div><h2>See the reasoning in action</h2><p>${esc(lesson.example)}</p><ol>${profile.method.map(step => `<li>${esc(step)}</li>`).join("")}</ol></div><aside><strong>Common mistake</strong><p>${esc(lesson.misconception)}</p><button class="btn small" type="button" data-explain-mistake>Explain this mistake</button></aside></section>
       <section id="vocabulary"><div class="section-head"><div><h2>Vocabulary</h2><p>Flip each card, then record whether you know it.</p></div><a class="btn small" href="${toolHref("flashcards", unit)}">Open full deck</a></div><div class="mini-flash-grid">${lesson.vocabulary.map((item, i) => `<button class="mini-flash" type="button" data-mini-flash="${i}" aria-pressed="false"><span><b>${esc(item.term)}</b><small>Tap to reveal</small></span><span><b>${esc(item.definition)}</b><small>Tap to return</small></span></button>`).join("")}</div></section>
       <section id="practice"><div class="section-head"><div><h2>Practice from recall to challenge</h2><p>Reveal one task at a time and explain your reasoning aloud or in writing.</p></div></div><div class="practice-ladder">${lesson.practice.map((item, i) => `<article><button type="button" data-practice="${i}"><span>${i + 1}</span><b>${esc(item.level)}</b><em>Reveal task</em></button><p hidden>${esc(item.prompt)}</p></article>`).join("")}</div></section>
-      <section id="check"><div class="section-head"><div><h2>Quick mastery check</h2><p>One saved question gives useful evidence; the unit quiz gives a more stable score.</p></div></div><div class="lesson-check" data-lesson-check></div></section>
+      <section id="check"><div class="section-head"><div><h2>Quick mastery check</h2><p>One saved question gives useful evidence; the unit quiz gives a more stable score.</p></div></div><div class="confidence-check"><span>Before answering, how confident are you?</span>${[1,2,3,4,5].map(value => `<button type="button" data-confidence="${value}" aria-label="Confidence ${value} out of 5">${value}</button>`).join("")}</div><div class="lesson-check" data-lesson-check></div></section>
       <section><div class="section-head"><div><h2>Sources</h2><p>What defines the scope and what was created by StudySpace.</p></div></div><div class="source-strip">${sourceList(lesson.sources)}</div></section>
       <nav class="unit-pagination">${prev ? `<a href="${lessonHref(unit, prev)}">← ${esc(prev.title)}</a>` : `<a href="${unitHref(unit)}">← Unit overview</a>`}<a href="${unitHref(unit)}">All lessons</a>${next ? `<a href="${lessonHref(unit, next)}">${esc(next.title)} →</a>` : `<a href="${toolHref("quiz", unit)}">Unit quiz →</a>`}</nav>`;
     document.title = `${lesson.topic} ${lesson.title} | ${course.title} | StudySpace`;
@@ -154,7 +210,12 @@
     document.querySelectorAll("[data-mini-flash]").forEach(button => button.onclick = () => { const pressed = button.getAttribute("aria-pressed") === "true"; button.setAttribute("aria-pressed", String(!pressed)); button.classList.toggle("flipped", !pressed); });
     document.querySelectorAll("[data-practice]").forEach(button => button.onclick = () => { const answer = button.parentElement.querySelector("p"); answer.hidden = !answer.hidden; button.querySelector("em").textContent = answer.hidden ? "Reveal task" : "Hide task"; });
     document.querySelector("[data-explain-mistake]").onclick = () => app.openAI(`Explain this common mistake in ${lesson.topic} ${lesson.title}: ${lesson.misconception} Give a contrasting example, then one quick check.`, false);
-    const shell = document.querySelector("[data-lesson-check]"), question = lesson.questions[0];
+    document.querySelector("[data-teach-zero]").onclick = () => teachFromZero(unit, lesson);
+    const savedId = `lesson:${course.id}:${unit.id}:${lesson.topic}`;
+    document.querySelector("[data-bookmark-lesson]").onclick = event => { const added = app.toggleBookmark({ id: savedId, type: "lesson", subject: course.id, unit: unit.id, topic: lesson.topic, title: lesson.title, href: location.href }); event.currentTarget.textContent = added ? "Saved" : "Save lesson"; };
+    document.querySelector("[data-queue-lesson]").onclick = event => { const added = app.toggleQueue({ id: savedId, type: "lesson", subject: course.id, unit: unit.id, topic: lesson.topic, title: lesson.title, href: location.href }); event.currentTarget.textContent = added ? "Queued" : "Add to study queue"; };
+    document.querySelectorAll("[data-confidence]").forEach(button => button.onclick = () => { app.setConfidence(`${course.id}:${unit.id}:${lesson.topic}`, button.dataset.confidence); document.querySelectorAll("[data-confidence]").forEach(item => item.classList.toggle("active", item === button)); });
+    const shell = document.querySelector("[data-lesson-check]"), question = randomizeQuestion(lesson.questions[Math.floor(Math.random() * lesson.questions.length)]);
     shell.innerHTML = `<p class="question-label">${esc(question.prompt)}</p><div class="choices">${question.choices.map((choice, i) => `<button class="btn choice" type="button" data-answer="${i}">${esc(choice)}</button>`).join("")}</div><p class="feedback" aria-live="polite"></p>`;
     shell.querySelectorAll("[data-answer]").forEach(button => button.onclick = () => {
       if (shell.dataset.answered) return;
@@ -192,7 +253,7 @@
     const all = units.flatMap(item => item.lessons.flatMap(lesson => lesson.questions.map(question => ({ ...question, lesson, unit: item }))));
     const topic = params.get("topic");
     const selected = topic ? all.filter(question => question.lesson.topic === topic) : all;
-    return selected.sort(() => Math.random() - .5).slice(0, Math.min(Number(params.get("n")) || 12, selected.length));
+    return selected.sort(() => Math.random() - .5).slice(0, Math.min(Number(params.get("n")) || 12, selected.length)).map(randomizeQuestion);
   }
 
   function renderQuiz() {
@@ -225,7 +286,9 @@
 
   function renderMistakes() {
     const mistakes = app.mistakesFor(course.id);
-    root.innerHTML = `${breadcrumbs([{ label: course.title, href: `subject.html?s=${q(course.id)}` }, { label: "My mistakes" }])}<header class="page-head"><div class="eyebrow">${esc(course.title)}</div><h1>My <span class="gradient-text">mistakes</span></h1><p class="lead">Every missed course-runtime question saves here with the selected answer, correction, explanation, and a path back to practice.</p><div class="actions"><a class="btn primary" href="${toolHref("quiz")}">Practice a new set</a><a class="btn" href="${toolHref("flashcards")}&mode=learning">Study learning cards</a></div></header><section><div class="mistake-list">${mistakes.length ? mistakes.map(item => `<article class="mistake-card ${item.laterCorrected ? "corrected" : ""}"><div class="mistake-head"><span>${esc(item.topic || item.unit)}</span><b>${esc(item.concept)}</b><em>${item.laterCorrected ? "Later corrected" : item.reviewed ? "Reviewed" : "Needs review"}</em></div><p><strong>Question:</strong> ${esc(item.question)}</p><div class="answer-comparison"><p><span>Your answer</span>${esc(item.wrongAnswer)}</p><p><span>Correct answer</span>${esc(item.correctAnswer)}</p></div><p class="example"><strong>Why:</strong> ${esc(item.explanation)}</p><div class="actions"><button class="btn small" type="button" data-review-id="${esc(item.id)}">${item.reviewed ? "Mark unreviewed" : "Mark reviewed"}</button><a class="btn small" href="${toolHref("quiz")}&topic=${q(item.topic || "")}&n=4">Retry concept</a><button class="btn small" type="button" data-ai-mistake="${esc(item.id)}">Ask AI</button></div></article>`).join("") : `<div class="empty-state panel"><h2>No saved mistakes yet</h2><p class="muted">Take a lesson check or course quiz. A missed answer will appear here with an explanation.</p><a class="btn primary" href="${toolHref("quiz")}">Start a quiz</a></div>`}</div></section>`;
+    const grouped = Object.entries(mistakes.reduce((groups, item) => { const key = `${item.unit || "Course"} · ${item.topic || "Mixed"} · ${item.concept || "Review"}`; (groups[key] ||= []).push(item); return groups; }, {}));
+    const card = item => `<article class="mistake-card ${item.laterCorrected ? "corrected" : ""}"><div class="mistake-head"><span>${esc(item.topic || item.unit)}</span><b>${esc(item.concept)}</b><em>${item.laterCorrected ? "Later corrected" : item.reviewed ? "Reviewed" : "Needs review"}</em></div><p><strong>Question:</strong> ${esc(item.question)}</p><div class="answer-comparison"><p><span>Your answer</span>${esc(item.wrongAnswer)}</p><p><span>Correct answer</span>${esc(item.correctAnswer)}</p></div><p class="example"><strong>Why:</strong> ${esc(item.explanation)}</p><div class="actions"><button class="btn small" type="button" data-review-id="${esc(item.id)}">${item.reviewed ? "Mark unreviewed" : "Mark reviewed"}</button><a class="btn small" href="${toolHref("quiz")}&topic=${q(item.topic || "")}&n=4">Retry concept</a><button class="btn small" type="button" data-ai-mistake="${esc(item.id)}">Ask AI</button></div></article>`;
+    root.innerHTML = `${breadcrumbs([{ label: course.title, href: `subject.html?s=${q(course.id)}` }, { label: "My mistakes" }])}<header class="page-head"><div class="eyebrow">${esc(course.title)}</div><h1>My <span class="gradient-text">mistakes</span></h1><p class="lead">Missed questions are grouped by unit, topic, and concept so you can fix a pattern instead of memorizing one answer.</p><div class="actions"><a class="btn primary" href="${toolHref("quiz")}">Practice a new set</a><a class="btn" href="${toolHref("flashcards")}&mode=learning">Study learning cards</a></div></header><section><div class="mistake-groups">${grouped.length ? grouped.map(([label, items]) => `<details class="mistake-group" open><summary><strong>${esc(label)}</strong><span>${items.length} mistake${items.length === 1 ? "" : "s"}</span></summary><div class="mistake-list">${items.map(card).join("")}</div></details>`).join("") : `<div class="empty-state panel"><h2>No saved mistakes yet</h2><p class="muted">Take a lesson check or course quiz. A missed answer will appear here with an explanation.</p><a class="btn primary" href="${toolHref("quiz")}">Start a quiz</a></div>`}</div></section>`;
     document.querySelectorAll("[data-review-id]").forEach(button => button.onclick = () => { const item = mistakes.find(entry => entry.id === button.dataset.reviewId); app.markMistakeReviewed(item.id, !item.reviewed); renderMistakes(); });
     document.querySelectorAll("[data-ai-mistake]").forEach(button => button.onclick = () => { const item = mistakes.find(entry => entry.id === button.dataset.aiMistake); app.openAI(`Help me understand this ${course.title} mistake. Question: ${item.question}\nMy answer: ${item.wrongAnswer}\nCorrect answer: ${item.correctAnswer}\nExplanation: ${item.explanation}\nTeach the concept, then give one similar original question.`, false); });
     document.title = `${course.title} Mistakes | StudySpace`;

@@ -95,6 +95,16 @@ algebra.flashcards.forEach(card => { for (const field of ["id", "topic", "term",
 
 const expectedCourses = ["aphg", "algebra2", "biology", "thinking-skills", "csit-foundations", "csit-essentials", "english", "orchestra"];
 expectedCourses.forEach(courseId => assert.ok(frameworks.course(courseId), `${courseId} must remain available after the Middleton expansion`));
+assert.deepEqual(frameworks.course("algebra2").units.map(item => item.id), ["class-1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "project"], "Algebra 2 must use the supplied Big Ideas Math chapter sequence rather than A-F standards buckets");
+assert.deepEqual(frameworks.course("algebra2").units[0].topics.map(item => item.title), ["Parent Functions and Transformations", "Transformations of Linear and Absolute Value Functions", "Modeling with Linear Functions", "Solving Absolute Value Inequalities", "Absolute Value Functions", "Piecewise Functions"]);
+assert.deepEqual(frameworks.course("biology").units.map(item => item.id), ["1", "2", "semester-review", "3", "4"], "Biology must preserve the supplied class order and semester review");
+assert.deepEqual(frameworks.course("biology").units.find(item => item.id === "2").topics.map(item => item.title), ["DNA, Replication, Protein Synthesis, Mutations, & Biotechnology", "Cell Cycle & Cancer", "Asexual vs. Sexual Reproduction, Including Meiosis", "Human & Plant Reproduction and Development"]);
+assert.ok(frameworks.course("biology").units.find(item => item.id === "3").topics.some(item => item.title === "Human Body"));
+assert.deepEqual(frameworks.course("biology").units.find(item => item.id === "4").topics.map(item => item.title), ["Ecosystems", "Food Webs & Ecological Relationships", "Human Impact & Environmental Systems"]);
+for (const courseId of ["algebra2", "biology"]) frameworks.course(courseId).units.forEach(courseUnit => courseUnit.topics.forEach(courseTopic => {
+  assert.ok(Array.isArray(courseTopic.dependsOn) && Array.isArray(courseTopic.supports) && Array.isArray(courseTopic.relatedConcepts), `${courseId} ${courseTopic.id} needs prerequisite graph metadata`);
+  assert.ok(["framework-aligned", "class-aligned"].includes(courseTopic.contentStatus), `${courseId} ${courseTopic.id} needs a student-facing content status`);
+}));
 assert.equal(frameworks.course("aphg").units.length, 7, "APHG must expose all seven official units");
 frameworks.course("aphg").units.forEach(courseUnit => {
   assert.ok(courseUnit.requiredKnowledge.length >= 3, `APHG Unit ${courseUnit.id} needs required-knowledge checkpoints`);
@@ -144,7 +154,7 @@ for (const courseId of expectedCourses) {
     });
   });
 }
-assert.ok(completeLessonCount >= 280, "The full course catalog should expose at least 280 complete lessons");
+assert.ok(completeLessonCount >= 280, "The course catalog should expose at least 280 detailed lessons");
 
 const verifiedMiddleton = middleton.list();
 assert.ok(verifiedMiddleton.length >= 170, "The latest Middleton programming-sheet audit should expose the full verified library");
@@ -168,12 +178,14 @@ for (const course of verifiedMiddleton) {
   }));
 }
 assert.ok(middletonLessonCount >= 3000, "The verified Middleton library should expose substantial lesson-level content, not empty cards");
-assert.match(learning.lesson("ap-biology", "1", "1.1").overview, /Water is polar, forms hydrogen bonds/, "Representative AP lessons need course-specific factual instruction, not a generic shell");
+assert.match(learning.lesson("ap-biology", "1", "1.1").overview, /Water is polar.*forms hydrogen bonds/, "Representative AP lessons need course-specific factual instruction, not a generic shell");
 
 const core = readFileSync(join(root, "assets/studyspace-core.js"), "utf8");
-assert.match(core, /version:\s*3/, "Shared storage schema should be version 3");
+assert.match(core, /version:\s*4/, "Shared storage schema should be version 4");
 assert.match(core, /function migrateV2/, "Shared storage should migrate existing version-1 progress");
 assert.match(core, /function migrateV3/, "Shared storage should migrate existing version-2 progress");
+assert.match(core, /function migrateV4/, "Shared storage should add adaptive fields without deleting legacy progress");
+for (const api of ["dueReviews", "nextBestStep", "recordDiagnostic", "toggleBookmark", "toggleQueue", "exportBackup", "importBackup"]) assert.match(core, new RegExp(api), `Shared storage should expose ${api}`);
 assert.match(core, /mistakesFor/, "Shared storage should expose a mistake-review API");
 assert.match(core, /markMistakeReviewed/, "Shared storage should expose mistake review status");
 assert.match(core, /laterCorrected/, "Shared storage should preserve later-corrected status");
@@ -210,7 +222,7 @@ const uiSourceFiles = ["app.js", "assets/chatbot.js", "assets/course-runtime.js"
 for (const file of uiSourceFiles) assert.doesNotMatch(readFileSync(join(root, file), "utf8"), forbiddenClassNotes, `${file} must not reintroduce the dedicated Class Notes UI`);
 
 const requiredPages = [
-  "manifest.webmanifest", "sw.js", "offline.html", "planner.html", "study.html",
+  "manifest.webmanifest", "sw.js", "offline.html", "planner.html", "study.html", "feedback.html", "api/feedback.js", "assets/feedback.js",
   "aphg-topic.html", "aphg-material.html", "biology.html", "biology-topic.html",
   "biology-flashcards.html", "biology-quiz.html", "biology-mistakes.html",
   "biology-material.html", "biology-session.html", "algebra2.html", "algebra2-section.html",

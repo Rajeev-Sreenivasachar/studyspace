@@ -1,10 +1,10 @@
-const CACHE = "studyspace-shell-v21";
+const CACHE = "studyspace-shell-v22";
 const CORE = [
-  "./", "index.html", "offline.html", "styles.css", "app.js?v=17", "manifest.webmanifest",
-  "assets/favicon.svg", "assets/chatbot.css?v=1", "assets/chatbot.js?v=3", "assets/studyspace-core.js",
-  "assets/data/course-frameworks.js?v=3", "assets/data/middleton-course-library.js?v=2", "assets/data/full-course-content.js?v=4", "assets/course-framework-ui.js?v=4", "assets/course-runtime.js?v=4", "assets/course-library.js?v=4", "styles.css?v=14",
+  "./", "index.html", "offline.html", "styles.css?v=15", "app.js?v=18", "manifest.webmanifest",
+  "assets/favicon.svg", "assets/chatbot.css?v=1", "assets/chatbot.js?v=3", "assets/studyspace-core.js?v=4",
+  "assets/data/course-frameworks.js?v=4", "assets/data/middleton-course-library.js?v=2", "assets/data/full-course-content.js?v=5", "assets/course-framework-ui.js?v=4", "assets/course-runtime.js?v=5", "assets/course-library.js?v=4", "styles.css?v=15",
   "assets/data/aphg-unit1.js", "assets/data/question-bank.js", "aphg.html", "aphg-topic.html",
-  "aphg-material.html", "aphg-review.html", "aphg-flashcards.html", "aphg-quiz.html", "planner.html", "study.html",
+  "aphg-material.html", "aphg-review.html", "aphg-flashcards.html", "aphg-quiz.html", "planner.html", "study.html", "feedback.html", "assets/feedback.js?v=1",
   "assets/aphg-hub.js", "assets/aphg-topic.js", "assets/aphg-material.js", "assets/aphg-flashcards.js",
   "assets/aphg-quiz.js", "assets/planner.js", "assets/study-import.js", "csit-essentials.html",
   "csit-module1.html", "csit-module1-flashcards.html", "csit-module1-quiz.html", "csit-data.js", "subject.html", "course-library.html",

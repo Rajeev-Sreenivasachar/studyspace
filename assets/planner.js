@@ -4,6 +4,15 @@
   const form = document.querySelector("#assessmentForm");
   const escape = value => app.escapeHtml(value);
 
+  function populateCourses() {
+    const select = document.querySelector("#assessmentSubject");
+    const setup = (() => { try { return JSON.parse(localStorage.getItem("studyspace-course-setup-v2")); } catch { return null; } })();
+    const selected = new Set(setup?.selectedCourses || []);
+    const all = globalThis.MIDDLETON_COURSE_LIBRARY?.list?.() || globalThis.STUDYSPACE_COURSES?.list?.() || [];
+    const courses = all.filter(course => !selected.size || selected.has(course.id));
+    select.innerHTML = courses.map(course => `<option value="${escape(course.id)}">${escape(course.title)}</option>`).join("") || `<option value="General">General</option>`;
+  }
+
   function assessments() {
     return app.state.assessments.filter(item => (app.daysUntil(item.date) ?? -1) >= 0).sort((a, b) => a.date.localeCompare(b.date));
   }
@@ -17,24 +26,26 @@
       if (item && confirm(`Delete ${item.name}?`)) app.deleteAssessment(item.id);
     });
     renderPlans(items);
+    renderWeeklyReview();
   }
 
-  function genericPlan(item) {
-    const days = Math.max(0, app.daysUntil(item.date) ?? 0);
-    const labels = days === 0 ? ["Today"] : days === 1 ? ["Today", "Tomorrow"] : ["Today", "Next session", "Night before"];
-    return labels.map((day, index) => ({ id: `plan-${item.id}-${index}`, assessmentId: item.id, day, minutes: index === labels.length - 1 ? 20 : 15, title: index === labels.length - 1 ? "Final review" : `Review ${item.topics || item.name}`, actions: index === labels.length - 1 ? ["Review unfinished material", "Practice without notes", "Check mistakes"] : ["Review key notes", "Study a small flashcard set", "Answer practice questions"], complete: app.state.planTasks.find(task => task.id === `plan-${item.id}-${index}`)?.complete || false }));
+  function renderWeeklyReview() {
+    const review = app.weeklyReview();
+    document.querySelector("#weeklyReviewGrid").innerHTML = [
+      [review.minutes, "focus minutes"], [review.questions, "questions answered"], [review.accuracy === null ? "—" : `${review.accuracy}%`, "practice accuracy"], [review.corrected, "mistakes corrected"], [review.due, "reviews due"]
+    ].map(([value, label]) => `<article><strong>${escape(value)}</strong><span>${escape(label)}</span></article>`).join("");
   }
 
   function renderPlans(items) {
     document.querySelector("#generatedPlans").innerHTML = items.length ? items.map(item => {
-      const plan = item.subject === "AP Human Geography" ? app.generatePlan(item, APHG_UNIT1) : genericPlan(item);
+      const plan = app.generatePlan(item, item.subject === "aphg" ? APHG_UNIT1 : undefined);
       return `<article class="plan-card"><div class="plan-card-head"><div><div class="eyebrow">${escape(item.name)}</div><h3>${escape(app.countdown(item.date))}</h3></div><span>${plan.reduce((sum, task) => sum + task.minutes, 0)} min total</span></div><div class="plan-days">${plan.map(task => `<div class="plan-day ${task.complete ? "complete" : ""}"><label><input type="checkbox" data-task="${task.id}" ${task.complete ? "checked" : ""}><span><strong>${escape(task.day)} — ${task.minutes} min</strong><b>${escape(task.title)}</b><small>${escape(task.actions.join(" · "))}</small></span></label><a href="index.html?focusTask=${encodeURIComponent(task.title)}#focus" data-focus-task="${escape(task.title)}">Start Focus Session</a></div>`).join("")}</div></article>`;
     }).join("") : "";
     document.querySelectorAll("[data-task]").forEach(input => {
       input.onchange = () => {
         const item = items.find(assessment => input.dataset.task.startsWith(`plan-${assessment.id}-`));
         if (!item) return;
-        const plan = item.subject === "AP Human Geography" ? app.generatePlan(item, APHG_UNIT1) : genericPlan(item);
+        const plan = app.generatePlan(item, item.subject === "aphg" ? APHG_UNIT1 : undefined);
         const task = plan.find(candidate => candidate.id === input.dataset.task);
         if (task) app.setTaskComplete(task, input.checked);
       };
@@ -47,7 +58,9 @@
     if (!item) return;
     document.querySelector("#assessmentId").value = item.id;
     document.querySelector("#assessmentName").value = item.name;
-    document.querySelector("#assessmentSubject").value = item.subject;
+    const subjectSelect = document.querySelector("#assessmentSubject");
+    if (![...subjectSelect.options].some(option => option.value === item.subject)) subjectSelect.add(new Option(item.subject, item.subject));
+    subjectSelect.value = item.subject;
     document.querySelector("#assessmentDate").value = item.date;
     document.querySelector("#assessmentType").value = item.type;
     document.querySelector("#assessmentTopics").value = item.topics;
@@ -71,5 +84,6 @@
   };
   document.querySelector("#cancelEdit").onclick = resetForm;
   window.addEventListener("studyspace:data", renderAssessments);
+  populateCourses();
   renderAssessments();
 })();

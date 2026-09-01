@@ -150,15 +150,17 @@
       "7": ["industrialization", "development", "global production", "sustainability"]
     },
     algebra2: {
-      "class-1": ["parent function", "transformation", "domain and range", "piecewise rule"], A: ["imaginary unit", "complex conjugate", "polynomial zero", "factor"],
-      B: ["equivalent expression", "polynomial division", "radical restriction", "excluded value"], C: ["function family", "rate of change", "asymptote", "model fit"],
-      D: ["solution set", "intersection", "substitution", "feasible region"], E: ["transformation", "composition", "inverse", "domain restriction"],
-      F: ["sample space", "conditional probability", "independence", "two-way table"]
+      "class-1": ["parent function", "transformation", "domain and range", "piecewise rule"],
+      "2": ["quadratic function", "vertex", "axis of symmetry", "model fit"], "3": ["quadratic equation", "complex number", "discriminant", "solution"],
+      "4": ["polynomial", "factor", "zero", "multiplicity"], "5": ["rational exponent", "radical restriction", "inverse operation", "extraneous solution"],
+      "6": ["exponential function", "logarithm", "inverse", "growth factor"], "7": ["rational function", "excluded value", "asymptote", "equivalent expression"],
+      "8": ["sample space", "conditional probability", "independence", "counting method"], "9": ["sequence", "recursive rule", "common difference", "common ratio"],
+      "10": ["matrix", "dimension", "system", "transformation"], project: ["model", "assumption", "validation", "limitation"]
     },
     biology: {
-      "1": ["structure and function", "matter and energy", "cell", "homeostasis"], "2": ["cell cycle", "chromosome", "DNA", "gene expression"],
-      "3": ["allele", "variation", "natural selection", "common ancestry"], "4": ["ecosystem", "energy flow", "matter cycle", "biodiversity"],
-      "5": ["structure and function", "feedback loop", "homeostasis", "system interaction"]
+      "1": ["structure and function", "matter and energy", "cell", "homeostasis"], "2": ["DNA", "cell cycle", "meiosis", "development"],
+      "semester-review": ["matter and energy", "cell", "DNA", "reproduction"], "3": ["allele", "natural selection", "common ancestry", "homeostasis"],
+      "4": ["ecosystem", "energy flow", "ecological relationship", "human impact"]
     },
     "thinking-skills": {
       PS1: ["relevant information", "constraint", "condition", "model"], PS2: ["operation", "process", "method", "efficiency"], PS3: ["representation", "pattern", "hypothesis", "conclusion"],
@@ -226,8 +228,8 @@
   function specific(course, unit, topic) {
     const t = topic.title.toLowerCase();
     if (course.subject === "Science") {
-      if (t === "water" || t.includes("properties of water")) return { fact: "Water is polar, forms hydrogen bonds, resists rapid temperature change, dissolves many ionic and polar substances, and participates directly in biological reactions.", example: "Hydrogen bonding creates surface tension and helps water buffer temperature changes inside cells and ecosystems.", mistake: "Saying water dissolves every substance or treating hydrogen bonds as the covalent bonds within one water molecule." };
-      if (t.includes("macromolecule")) return { fact: "Carbohydrates, lipids, proteins, and nucleic acids have distinct monomers, bonds, structures, and cellular functions; structure determines what each molecule can do.", example: "Changing an enzyme's amino-acid interactions can alter its three-dimensional active site and therefore its function.", mistake: "Memorizing four categories without connecting monomer, bond, shape, and function." };
+      if (t === "water" || t.includes("properties of water")) return { fact: "Water is polar and forms hydrogen bonds. Those interactions support cohesion, adhesion, high specific heat, solvent behavior for many ionic and polar substances, and an open crystal structure that makes ice less dense than liquid water.", example: "Because ice floats, it can insulate liquid water below; because water changes temperature slowly, it helps stabilize cells and ecosystems.", mistake: "Saying water dissolves every substance, that ice is denser than liquid water, or that hydrogen bonds are the covalent bonds within one molecule." };
+      if (t.includes("macromolecule")) return { fact: "Carbohydrates, proteins, and nucleic acids are built from repeating monomers, while lipids are assembled mainly from components such as glycerol and fatty acids and are not true polymers. Each group has characteristic structures and biological functions.", example: "Changing an enzyme's amino-acid interactions can alter its three-dimensional active site and therefore its function.", mistake: "Treating every major biological molecule, especially lipids, as a repeating-monomer polymer or memorizing categories without connecting structure and function." };
       if (t.includes("membrane") || t === "transport") return { fact: "A selectively permeable phospholipid bilayer regulates movement through diffusion, osmosis, facilitated diffusion, and energy-requiring active transport.", example: "Water moves toward the side with lower free-water concentration, while a pump can move ions against their gradient using ATP.", mistake: "Assuming every molecule crosses the membrane freely or that osmosis is the movement of solute." };
       if (t.includes("enzyme") || t.includes("activation energy")) return { fact: "Enzymes speed reactions by lowering activation energy through specific interactions with substrates; temperature, pH, concentration, and inhibitors affect reaction rate.", example: "An inhibitor occupying an active site can reduce product formation even though the reaction remains thermodynamically possible.", mistake: "Claiming enzymes supply energy, change equilibrium, or are permanently consumed by each reaction." };
       if (t.includes("photosynthesis")) return { fact: "Light reactions convert light energy into ATP and NADPH, while the Calvin cycle uses those products to reduce carbon dioxide into carbohydrate precursors.", example: "Closing stomata can conserve water but limit carbon dioxide entry and lower carbon fixation.", mistake: "Saying plants create matter from sunlight or that the Calvin cycle directly requires light photons." };
@@ -306,12 +308,20 @@
     const profile = profiles[course.profileId || course.id];
     const detail = specific(course, unit, topic);
     const anchors = unitTerms(course, unit.id);
+    const contextualDefinitions = course.id === "biology" ? {
+      meiosis: "a two-division cell process that produces genetically varied haploid cells",
+      development: "the coordinated changes in cell division, differentiation, growth, and form across an organism's life cycle",
+      "ecological relationship": "an interaction between organisms that changes access to energy, resources, survival, or reproduction",
+      "human impact": "a measurable change to biological or environmental systems caused by human activity"
+    } : {};
     const vocabulary = [
       { term: topic.title, definition: detail.fact },
-      ...anchors.map(term => ({ term, definition: definitions[term] || `A core idea used to reason about ${unit.title.toLowerCase()}.` }))
+      ...anchors.map(term => ({ term, definition: contextualDefinitions[term] || definitions[term] || `A core idea used to reason about ${unit.title.toLowerCase()}.` }))
     ].slice(0, 5);
     return {
       id: `${course.id}-${topic.id}`, subject: course.id, unit: unit.id, topic: topic.id, title: topic.title,
+      contentStatus: topic.contentStatus || unit.contentStatus || "framework-aligned",
+      dependsOn: topic.dependsOn || [], supports: topic.supports || [], relatedConcepts: topic.relatedConcepts || [], standardTags: topic.standardTags || unit.standardTags || [],
       overview: `${sentence(detail.fact)} The goal is not just recognition: you should be able to explain the idea, use ${profile.evidence}, and defend a conclusion.`,
       objectives: [`Explain ${topic.title.toLowerCase()} in your own words.`, `Apply it using ${profile.evidence}.`, `Recognize and correct a common error in reasoning about this topic.`],
       sections: [
@@ -327,10 +337,10 @@
         { level: "Challenge", prompt: `Change one assumption, input, scale, or condition. Explain what changes, what stays the same, and what evidence would settle the question.` }
       ],
       questions: [
-        { id: `${course.id}-${topic.id}-q1`, prompt: `Which statement best explains ${topic.title}?`, choices: [detail.fact, detail.mistake, `It can be determined without using the source, conditions, or representation.`, `It is only a vocabulary label and has no connection to ${unit.title}.`], answer: 0, explanation: detail.fact },
-        { id: `${course.id}-${topic.id}-q2`, prompt: `What is the strongest first move when solving a new ${topic.title} problem?`, choices: [profile.method[0], `Choose the longest answer`, `Ignore the source or representation`, `Assume the conclusion and work backward`], answer: 0, explanation: `${profile.method[0]} keeps the reasoning tied to the actual task.` },
-        { id: `${course.id}-${topic.id}-q3`, prompt: `Which error should you actively avoid in this lesson?`, choices: [detail.mistake, `Showing each important step`, `Checking the answer against evidence`, `Using precise vocabulary in context`], answer: 0, explanation: detail.mistake },
-        { id: `${course.id}-${topic.id}-q4`, prompt: `After reaching an answer about ${topic.title}, what should you do next?`, choices: [profile.method[3], `Delete the work`, `Add an unrelated fact`, `Treat the first result as universally true`], answer: 0, explanation: `${profile.method[3]} turns a result into a defensible conclusion.` }
+        { id: `${course.id}-${topic.id}-q1`, prompt: `Which statement best explains ${topic.title}?`, choices: [detail.fact, detail.mistake, `It can be determined without using the source, conditions, or representation.`, `It is only a vocabulary label and has no connection to ${unit.title}.`], answer: 0, explanation: detail.fact, difficulty: "core", cognitiveType: "conceptual", misconception: detail.mistake, provenance: "studyspace-generated", version: 1 },
+        { id: `${course.id}-${topic.id}-q2`, prompt: `What is the strongest first move when solving a new ${topic.title} problem?`, choices: [profile.method[0], `Choose the longest answer`, `Ignore the source or representation`, `Assume the conclusion and work backward`], answer: 0, explanation: `${profile.method[0]} keeps the reasoning tied to the actual task.`, difficulty: "core", cognitiveType: "process", misconception: "Starting with an answer-choice shortcut instead of the problem conditions", provenance: "studyspace-generated", version: 1 },
+        { id: `${course.id}-${topic.id}-q3`, prompt: `Which error should you actively avoid in this lesson?`, choices: [detail.mistake, `Showing each important step`, `Checking the answer against evidence`, `Using precise vocabulary in context`], answer: 0, explanation: detail.mistake, difficulty: "application", cognitiveType: "misconception", misconception: detail.mistake, provenance: "studyspace-generated", version: 1 },
+        { id: `${course.id}-${topic.id}-q4`, prompt: `After reaching an answer about ${topic.title}, what should you do next?`, choices: [profile.method[3], `Delete the work`, `Add an unrelated fact`, `Treat the first result as universally true`], answer: 0, explanation: `${profile.method[3]} turns a result into a defensible conclusion.`, difficulty: "application", cognitiveType: "evaluation", misconception: "Treating the first result as universally true", provenance: "studyspace-generated", version: 1 }
       ],
       sources: topic.sourceIds
     };

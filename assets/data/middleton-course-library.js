@@ -96,8 +96,8 @@
     version: "Original content", scope: `Copyright-safe lessons, examples, flashcards, quizzes, and activities for ${course.title}`, priority: 3
   });
 
-  const topic = (id, title, summary, sourceIds) => ({ id, title, summary, sourceIds, status: "complete-original" });
-  const unit = (id, title, summary, topics, sourceIds) => ({ id, title, summary, topics, sourceIds, status: "complete-original" });
+  const topic = (id, title, summary, sourceIds) => ({ id, title, summary, sourceIds, status: "framework-ready", contentStatus: "framework-aligned", dependsOn: [], supports: [], relatedConcepts: [], standardTags: [] });
+  const unit = (id, title, summary, topics, sourceIds) => ({ id, title, summary, topics, sourceIds, status: "framework-ready", contentStatus: "framework-aligned", classSequence: false, note: "", legacyIds: [], standardTags: [] });
   const rows = text => text.split("|").map(value => value.trim()).filter(Boolean);
   const define = (title, summary, topicText) => ({ title, summary, topics: rows(topicText) });
 
@@ -485,7 +485,7 @@
       availabilityStatus: "verified-middleton", schoolAvailability: "Verified on Middleton 2025-2026 programming sheets", sourceYear: schoolYear,
       source: schoolSource.id, status: "verified-middleton",
       offeringSourceUrl: schoolSource.url, credits: course.credits || "Not listed by Middleton", prerequisites: course.prerequisites || "See grade placement and counselor guidance",
-      contentStatus: "complete", libraryRoute: metadata.route, libraryNote: "Existing detailed StudySpace course preserved"
+      contentStatus: course.units.some(item => item.contentStatus === "class-aligned") ? "class-aligned" : "framework-aligned", libraryRoute: metadata.route, libraryNote: "Existing detailed StudySpace course preserved"
     });
     if (!course.sources.some(source => source.id === schoolSource.id)) course.sources.unshift(schoolSource);
   });
@@ -507,7 +507,7 @@
       program: spec.program, ap: Boolean(spec.ap), aice: Boolean(spec.aice), profileId: profile, frameworkStatus: spec.frameworkStatus || "verified-framework",
       frameworkSourceId: framework.id, availabilityStatus: "verified-middleton", schoolAvailability: "Verified on Middleton 2025-2026 programming sheets",
       source: schoolSource.id, status: "verified-middleton",
-      sourceYear: schoolYear, offeringSourceUrl: schoolSource.url, contentStatus: "complete-original", libraryRoute: `subject.html?s=${encodeURIComponent(id)}`,
+      sourceYear: schoolYear, offeringSourceUrl: schoolSource.url, contentStatus: "framework-aligned", libraryRoute: `subject.html?s=${encodeURIComponent(id)}`,
       summary: `${spec.title} includes an original ${units.length}-unit StudySpace sequence mapped to the applicable public framework. Teacher pacing, assignments, and class-specific materials remain separate until supplied.`,
       note: spec.note || "", skills: units.flatMap(item => item.topics.slice(0, 1).map(entry => entry.title)).slice(0, 6), sources: [schoolSource, framework, classSource, generated], units
     };
